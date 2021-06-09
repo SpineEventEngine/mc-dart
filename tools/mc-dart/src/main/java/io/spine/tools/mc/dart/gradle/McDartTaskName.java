@@ -26,42 +26,49 @@
 
 package io.spine.tools.mc.dart.gradle;
 
-import com.google.protobuf.gradle.ExecutableLocator;
-import io.spine.tools.dart.fs.ProtocPluginPath;
-import io.spine.tools.gradle.ProtocConfigurationPlugin;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Project;
-
-import java.io.File;
-import java.nio.file.Path;
-
-import static io.spine.tools.gradle.ProtocPluginName.dart;
+import io.spine.annotation.Internal;
+import io.spine.tools.gradle.TaskName;
 
 /**
- * A Gradle plugin that performs additional {@code protoc} configurations
- * relevant for Dart projects.
+ * Names of Gradle tasks defined by the Spine Protobuf Dart plugin.
  */
-final class ProtocConfig extends ProtocConfigurationPlugin {
+@Internal
+public enum McDartTaskName implements TaskName {
 
-    @Override
-    protected Path generatedFilesBaseDir(Project project) {
-        return McDartExtension.findIn(project).generatedDirPath();
-    }
+    /**
+     * Creates the {@code types.dart} file which contains type mapping for all the production
+     * Protobuf types defined in this project.
+     *
+     * <p>Works only with the {@code main} scope types.
+     */
+    generateDartTypeRegistry,
 
-    @Override
-    protected File getMainDescriptorSet(Project project) {
-        return McDartExtension.findIn(project).mainDescriptorSetFile();
-    }
+    /**
+     * Creates the {@code types.dart} file which contains type mapping for all the test Protobuf
+     * types defined in this project.
+     *
+     * <p>Works only with the {@code test} scope types.
+     */
+    generateDartTestTypeRegistry,
 
-    @Override
-    protected File getTestDescriptorSet(Project project) {
-        return McDartExtension.findIn(project).testDescriptorSetFile();
-    }
+    /**
+     * Copies the Dart code generated from Protobuf from its temporary location to the {@code lib}
+     * directory.
+     *
+     * <p>Works only with the {@code main} scope files.
+     */
+    copyGeneratedDart,
 
-    @Override
-    protected void configureProtocPlugins(NamedDomainObjectContainer<ExecutableLocator> plugins,
-                                          Project project) {
-        Path executable = ProtocPluginPath.locate();
-        plugins.create(dart.name(), locator -> locator.setPath(executable.toString()));
-    }
+    /**
+     * Copies the Dart code generated from Protobuf from its temporary location to the {@code test}
+     * directory.
+     *
+     * <p>Works only with the {@code test} scope files.
+     */
+    copyTestGeneratedDart,
+
+    /**
+     * Rewrites the Dart source files generated from Protobuf with the resolved absolute imports.
+     */
+    resolveImports
 }
