@@ -26,28 +26,40 @@
 
 package io.spine.tools.mc.dart.gradle;
 
+import com.google.common.collect.ImmutableMap;
 import io.spine.tools.dart.fs.DefaultDartPaths;
 import io.spine.tools.fs.ExternalModules;
 import io.spine.tools.gradle.GradleExtension;
+import io.spine.tools.gradle.SourceScope;
+import io.spine.tools.gradle.TaskName;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Copy;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.Maps.newHashMap;
-import static java.util.Objects.requireNonNull;
+import static io.spine.tools.gradle.BaseTaskName.assemble;
+import static io.spine.tools.gradle.ProtobufTaskName.generateProto;
+import static io.spine.tools.gradle.ProtobufTaskName.generateTestProto;
+import static io.spine.tools.gradle.ProtocPluginName.dart;
+import static io.spine.tools.gradle.SourceScope.main;
+import static io.spine.tools.gradle.SourceScope.test;
+import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
+import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
+import static org.gradle.api.Task.TASK_TYPE;
 
 /**
  * DSL extension for configuring Protobuf-to-Dart compilation.
  */
 @SuppressWarnings("UnstableApiUsage") // Gradle `Property` API.
-public final class Extension extends GradleExtension {
+public final class McDartExtension extends GradleExtension {
 
     private static final String NAME = "protoDart";
 
@@ -93,12 +105,12 @@ public final class Extension extends GradleExtension {
      * ]
      * }</pre>
      */
-    @SuppressWarnings("PublicField" /* Expose fields as a Gradle extension */)
-    public final Map<String, List<String>> modules = newHashMap();
+    @SuppressWarnings({"PublicField", "WeakerAccess" /* Expose fields as a Gradle extension */ })
+    public final Map<String, List<String>> modules = new HashMap<>();
 
     private final Project project;
 
-    Extension(Project project) {
+    McDartExtension(Project project) {
         super();
         this.project = project;
         ObjectFactory objects = project.getObjects();
@@ -110,6 +122,36 @@ public final class Extension extends GradleExtension {
         this.testDescriptorSet = objects.property(Object.class);
         this.generatedDir = objects.directoryProperty();
         initProperties();
+    }
+
+    void createMainCopyTaskIn(Project project) {
+        createCopyTask(project, main);
+    }
+
+    void createTestCopyTaskIn(Project project) {
+        createCopyTask(project, test);
+    }
+
+    private void createCopyTask(Project project, SourceScope scope) {
+        McDartTaskName taskName;
+        DirectoryProperty targetDir;
+        TaskName runAfter;
+        if (scope == main) {
+            taskName = copyGeneratedDart;
+            targetDir = getLibDir();
+            runAfter = generateProto;
+        } else {
+            taskName = copyTestGeneratedDart;
+            targetDir = getTestDir();
+            runAfter = generateTestProto;
+        }
+        Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.name());
+        task.from(getGeneratedBaseDir().dir(scope.name() + File.separator + dart.name()));
+        task.into(targetDir);
+        task.dependsOn(runAfter.name());
+        project.getTasks()
+               .getByName(assemble.name())
+               .dependsOn(taskName.name());
     }
 
     private void initProperties() {
@@ -126,10 +168,11 @@ public final class Extension extends GradleExtension {
     /**
      * Finds an extension of this type in the given project.
      */
-    static Extension findIn(Project project) {
-        Extension extension = project.getExtensions()
-                                     .getByType(Extension.class);
-        return requireNonNull(extension);
+    static McDartExtension findIn(Project project) {
+        McDartExtension result =
+                project.getExtensions()
+                       .getByType(McDartExtension.class);
+        return result;
     }
 
     /**
@@ -137,7 +180,7 @@ public final class Extension extends GradleExtension {
      */
     void register() {
         project.getExtensions()
-               .add(Extension.class, NAME, this);
+               .add(McDartExtension.class, NAME, this);
     }
 
     /**
