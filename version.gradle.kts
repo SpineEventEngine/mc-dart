@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, TeamDev. All rights reserved.
+ * Copyright 2020, TeamDev. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-val spineBaseVersion: String by extra
-val mcVersion: String by extra
+/**
+ * This version is also used in the tests. See `mc-js/src/test/resources/build.gradle.kts`.
+ */
+val spineBaseVersion by extra("2.0.0-SNAPSHOT.72")
+val toolBaseVersion by extra("0.1.3")
+val mcVersion by extra("0.1.3")
 
-dependencies {
-    api(gradleApi())
-    api("io.spine.tools:spine-model-compiler:${mcVersion}")
-
-    testImplementation(gradleTestKit())
-    testImplementation("io.spine.tools:spine-testlib:${spineBaseVersion}")
-}
-
-//TODO:2021-07-22:alexander.yevsyukov: Turn to WARN and investigate duplicates.
-// see https://github.com/SpineEventEngine/base/issues/657
-val dupStrategy = DuplicatesStrategy.INCLUDE
-tasks.processResources.get().duplicatesStrategy = dupStrategy
-tasks.sourceJar.get().duplicatesStrategy = dupStrategy
+val versionToPublish by extra("0.1.4")
