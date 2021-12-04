@@ -30,14 +30,15 @@ import com.google.common.flogger.FluentLogger;
 import io.spine.tools.dart.fs.DartFile;
 import io.spine.tools.fs.ExternalModules;
 import io.spine.tools.gradle.task.GradleTask;
+import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileTree;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Set;
 
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
@@ -53,41 +54,55 @@ final class ResolveImportTask {
     }
 
     static void createTasksIn(Project project) {
-        McDartOptions options = getMcDart(project);
-        createTask(project, options, false);
-        createTask(project, options, true);
+        createTask(project, false);
+        createTask(project, true);
     }
 
-    private static void createTask(Project project, McDartOptions options, boolean tests) {
-        ExternalModules modules = options.modules();
-        Action<Task> action = new ReplaceImportAction(options.getLibDir(), modules);
-        GradleTask.newBuilder(tests ? resolveTestImports : resolveImports, action)
-                .insertAfterTask(copyGeneratedDart)
+    private static void createTask(Project project, boolean tests) {
+        Action<Task> action = createAction(project);
+        TaskName taskName = tests ? resolveTestImports : resolveImports;
+        //TODO:2021-12-05:alexander.yevsyukov: Shouldn't it depend on source set?
+        TaskName copyTaskName = copyGeneratedDart;
+        GradleTask.newBuilder(taskName, action)
+                .insertAfterTask(copyTaskName)
                 .insertBeforeTask(assemble)
                 .applyNowTo(project);
     }
 
+    private static Action<Task> createAction(Project project) {
+        McDartOptions options = getMcDart(project);
+        DirectoryProperty libDir = options.getLibDir();
+        Path libPath = libDir.getAsFile()
+                             .map(File::toPath)
+                             .get();
+        Set<File> generatedFiles = libDir.getAsFileTree()
+                                         .getFiles();
+        ExternalModules modules = options.modules();
+        Action<Task> action = new ReplaceImportAction(libPath, generatedFiles, modules);
+        return action;
+    }
+
     private static final class ReplaceImportAction implements Action<Task> {
 
-        private final DirectoryProperty libDir;
+        private final Path libPath;
+        private final Set<File> generatedFiles;
         private final ExternalModules modules;
 
-        private ReplaceImportAction(DirectoryProperty dir, ExternalModules modules) {
-            this.libDir = dir;
+        private ReplaceImportAction(Path libPath,
+                                    Set<File> generatedFiles,
+                                    ExternalModules modules) {
+            this.libPath = libPath;
+            this.generatedFiles = generatedFiles;
             this.modules = modules;
         }
 
         @Override
         public void execute(Task task) {
-            FileTree generatedFiles = libDir.getAsFileTree();
             generatedFiles.forEach(this::resolveImports);
         }
 
         private void resolveImports(File sourceFile) {
             log.atFine().log("Resolving imports in the file `%s`.", sourceFile);
-            Path libPath = libDir.getAsFile()
-                                 .map(File::toPath)
-                                 .get();
             DartFile file = DartFile.read(sourceFile.toPath());
             file.resolveImports(libPath, modules);
         }
