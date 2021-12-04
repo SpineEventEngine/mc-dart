@@ -26,31 +26,20 @@
 
 package io.spine.tools.mc.dart.gradle;
 
-import com.google.common.collect.ImmutableMap;
 import io.spine.tools.fs.ExternalModules;
 import io.spine.tools.gradle.SourceSetName;
-import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Copy;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.spine.tools.gradle.ProtocPluginName.dart;
 import static io.spine.tools.gradle.project.Projects.descriptorSetFile;
-import static io.spine.tools.gradle.task.BaseTaskName.assemble;
-import static io.spine.tools.gradle.task.ProtobufTaskName.generateProto;
-import static io.spine.tools.gradle.task.ProtobufTaskName.generateTestProto;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
-import static org.gradle.api.Task.TASK_TYPE;
 
 /**
  * DSL extension for configuring Protobuf-to-Dart compilation.
@@ -122,36 +111,6 @@ public class McDartOptions {
         this.generatedTestDir = objects.directoryProperty();
         this.generatedDir = objects.directoryProperty();
         initProperties();
-    }
-
-    void createMainCopyTaskIn(Project project) {
-        createCopyTask(project, SourceSetName.main);
-    }
-
-    void createTestCopyTaskIn(Project project) {
-        createCopyTask(project, SourceSetName.test);
-    }
-
-    private void createCopyTask(Project project, SourceSetName ssn) {
-        McDartTaskName taskName;
-        DirectoryProperty targetDir;
-        TaskName runAfter;
-        if (ssn.equals(SourceSetName.main)) {
-            taskName = copyGeneratedDart;
-            targetDir = getLibDir();
-            runAfter = generateProto;
-        } else {
-            taskName = copyTestGeneratedDart;
-            targetDir = getTestDir();
-            runAfter = generateTestProto;
-        }
-        Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.name());
-        task.from(getGeneratedBaseDir().dir(ssn.getValue() + File.separator + dart.name()));
-        task.into(targetDir);
-        task.dependsOn(runAfter.name());
-        project.getTasks()
-               .getByName(assemble.name())
-               .dependsOn(taskName.name());
     }
 
     private void initProperties() {
