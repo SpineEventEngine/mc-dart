@@ -27,7 +27,7 @@
 package io.spine.tools.mc.dart.gradle;
 
 import io.spine.annotation.Internal;
-import io.spine.tools.gradle.TaskName;
+import io.spine.tools.gradle.task.TaskName;
 
 /**
  * Names of Gradle tasks defined by the Spine Protobuf Dart plugin.

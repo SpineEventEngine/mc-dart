@@ -26,10 +26,11 @@
 
 package io.spine.tools.mc.dart.gradle;
 
-import io.spine.tools.gradle.SpinePlugin;
+import io.spine.logging.Logging;
 import io.spine.tools.dart.fs.DartFile;
+import io.spine.tools.gradle.task.GradleTask;
+import io.spine.tools.mc.gradle.LanguagePlugin;
 import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
@@ -38,10 +39,11 @@ import org.gradle.api.file.FileTree;
 import java.io.File;
 import java.nio.file.Path;
 
-import static io.spine.tools.gradle.BaseTaskName.assemble;
+import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveTestImports;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 
 /**
  * A Gradle plugin which configures Protobuf Dart code generation.
@@ -51,15 +53,19 @@ import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveTestImports;
  *
  * @see ProtocConfig
  */
-public final class McDartPlugin extends SpinePlugin {
+public final class McDartPlugin extends LanguagePlugin implements Logging {
+
+    public McDartPlugin() {
+        super(McDartOptions.NAME, getKotlinClass(McDartOptions.class));
+    }
 
     @Override
     public void apply(Project project) {
-        McDartExtension extension = new McDartExtension(project);
+        super.apply(project);
+        McDartOptions extension = new McDartOptions(project);
         extension.register();
 
-        Plugin<Project> protocConfig = new ProtocConfig();
-        protocConfig.apply(project);
+        ProtocConfig.applyTo(project);
 
         extension.createMainCopyTaskIn(project);
         extension.createTestCopyTaskIn(project);
@@ -67,31 +73,31 @@ public final class McDartPlugin extends SpinePlugin {
         createTestResolveImportTask(project, extension);
     }
 
-    private void createMainResolveImportTask(Project project, McDartExtension extension) {
+    private void createMainResolveImportTask(Project project, McDartOptions extension) {
         DirectoryProperty rootDir = extension.getGeneratedMainDir();
         doCreateResolveImportsTask(project, extension, rootDir, false);
     }
 
-    private void createTestResolveImportTask(Project project, McDartExtension extension) {
+    private void createTestResolveImportTask(Project project, McDartOptions extension) {
         DirectoryProperty rootDir = extension.getGeneratedTestDir();
         doCreateResolveImportsTask(project, extension, rootDir, true);
     }
 
     private void doCreateResolveImportsTask(Project project,
-                                            McDartExtension extension,
+                                            McDartOptions extension,
                                             DirectoryProperty rootDir,
                                             boolean tests) {
         Action<Task> action = task -> {
             FileTree generatedFiles = rootDir.getAsFileTree();
             generatedFiles.forEach(file -> resolveImports(file, extension));
         };
-        newTask(tests ? resolveTestImports : resolveImports, action)
+        GradleTask.newBuilder(tests ? resolveTestImports : resolveImports, action)
                 .insertAfterTask(copyGeneratedDart)
                 .insertBeforeTask(assemble)
                 .applyNowTo(project);
     }
 
-    private void resolveImports(File sourceFile, McDartExtension extension) {
+    private void resolveImports(File sourceFile, McDartOptions extension) {
         _debug().log("Resolving imports in the file `%s`.", sourceFile);
         DartFile file = DartFile.read(sourceFile.toPath());
         Path libPath = extension.getLibDir()

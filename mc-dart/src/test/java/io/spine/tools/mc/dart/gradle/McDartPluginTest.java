@@ -27,7 +27,7 @@
 package io.spine.tools.mc.dart.gradle;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import io.spine.tools.gradle.TaskName;
+import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -39,7 +39,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.spine.tools.gradle.BaseTaskName.assemble;
+import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
