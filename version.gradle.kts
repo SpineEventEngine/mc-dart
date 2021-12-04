@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, TeamDev. All rights reserved.
+ * Copyright 2021, TeamDev. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * This version is also used in the tests. See `mc-js/src/test/resources/build.gradle.kts`.
- */
-val spineBaseVersion by extra("2.0.0-SNAPSHOT.74")
-val toolBaseVersion by extra("2.0.0-SNAPSHOT.74")
-val mcVersion by extra("2.0.0-SNAPSHOT.74")
+val spineBaseVersion by extra("2.0.0-SNAPSHOT.77")
+val toolBaseVersion by extra("2.0.0-SNAPSHOT.82")
+val mcVersion by extra("2.0.0-SNAPSHOT.85")
 
-val versionToPublish by extra("2.0.0-SNAPSHOT.74")
+val versionToPublish by extra("2.0.0-SNAPSHOT.82")
