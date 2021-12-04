@@ -39,16 +39,15 @@ import org.gradle.api.tasks.Copy;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.spine.tools.gradle.ProtocPluginName.dart;
 import static io.spine.tools.gradle.project.Projects.descriptorSetFile;
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.gradle.task.ProtobufTaskName.generateProto;
 import static io.spine.tools.gradle.task.ProtobufTaskName.generateTestProto;
-import static io.spine.tools.gradle.ProtocPluginName.dart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
 import static org.gradle.api.Task.TASK_TYPE;
@@ -164,14 +163,6 @@ public class McDartOptions {
         generatedMainDir.convention(libDir);
         generatedTestDir.convention(testDir);
         generatedDir.convention(projectDir.dir(GENERATED_BASE_DIR));
-    }
-
-    /**
-     * Registers this extension in the given project.
-     */
-    void register() {
-        project.getExtensions()
-               .add(McDartOptions.class, NAME, this);
     }
 
     /**

@@ -30,14 +30,11 @@ import io.spine.logging.Logging;
 import io.spine.tools.dart.fs.DartFile;
 import io.spine.tools.gradle.task.GradleTask;
 import io.spine.tools.mc.gradle.LanguagePlugin;
-import io.spine.tools.mc.gradle.ModelCompilerOptions;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.plugins.ExtensionContainer;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -46,7 +43,7 @@ import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveTestImports;
-import static java.util.Objects.requireNonNull;
+import static io.spine.tools.mc.dart.gradle.Projects.getMcDart;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 
 /**
@@ -70,17 +67,8 @@ public final class McDartPlugin extends LanguagePlugin implements Logging {
         createTasks(project);
     }
 
-    private McDartOptions extensionIn(Project project) {
-        ModelCompilerOptions outerExtension = requireNonNull(getOuterExtension(project));
-        ExtensionContainer extensions = requireNonNull(
-                ((ExtensionAware) outerExtension).getExtensions()
-        );
-        McDartOptions options = (McDartOptions)extensions.getByName(getLanguageName());
-        return options;
-    }
-
     private void createTasks(Project project) {
-        McDartOptions options = extensionIn(project);
+        McDartOptions options = getMcDart(project);
         options.createMainCopyTaskIn(project);
         options.createTestCopyTaskIn(project);
         createMainResolveImportTask(project, options);

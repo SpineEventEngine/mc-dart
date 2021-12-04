@@ -24,14 +24,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-val spineBaseVersion: String by extra
-val mcVersion: String by extra
+@file:JvmName("Projects")
 
-dependencies {
-    api(gradleApi())
-    api(gradleKotlinDsl())
-    api("io.spine.tools:spine-model-compiler:${mcVersion}")
+package io.spine.tools.mc.dart.gradle
 
-    testImplementation(gradleTestKit())
-    testImplementation("io.spine.tools:spine-testlib:${spineBaseVersion}")
-}
+import io.spine.tools.mc.gradle.modelCompiler
+import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.getByType
+
+/**
+ * Obtains [McDartOptions] in this project.
+ */
+public val Project.mcDart: McDartOptions
+    get() = (modelCompiler as ExtensionAware).extensions.getByType()
