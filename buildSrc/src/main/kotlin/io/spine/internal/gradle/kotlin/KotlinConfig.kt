@@ -24,39 +24,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * This plugin configured the test output as follows:
- *
- *  - the standard streams of the tests execution are logged;
- *  - exceptions thrown in tests are logged;
- *  - after all the tests are executed, a short test summary is logged; the summary shown the number
- *    of tests and their results.
+package io.spine.internal.gradle.kotlin
+
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+/**
+ * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
+ * to the specified version (e.g. "11" or "8").
  */
-
-println("`test-output.gradle` script is deprecated. Please use `Test.configureLogging()` instead.")
-
-tasks.withType(Test).each {
-    it.testLogging {
-        showStandardStreams = true
-        showExceptions = true
-        showStackTraces = true
-        showCauses = true
-        exceptionFormat = 'full'
+fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
     }
+}
 
-    it.afterSuite { final testDescriptor, final result ->
-        // If the descriptor has no parent, then it is the root test suite, i.e. it includes the
-        // info about all the run tests.
-        if (!testDescriptor.parent) {
-            logger.lifecycle(
-                    """
-                    Test summary:
-                    >> ${result.testCount} tests
-                    >> ${result.successfulTestCount} succeeded
-                    >> ${result.failedTestCount} failed
-                    >> ${result.skippedTestCount} skipped
-                    """
-            )
-        }
+/**
+ * Opts-in to experimental features that we use in our codebase.
+ */
+fun KotlinCompile.setFreeCompilerArgs() {
+    kotlinOptions {
+        freeCompilerArgs = listOf(
+            "-Xskip-prerelease-check",
+            "-Xjvm-default=all",
+            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+            "-Xopt-in=kotlin.ExperimentalStdlibApi"
+        )
     }
 }
