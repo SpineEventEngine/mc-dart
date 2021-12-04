@@ -58,7 +58,6 @@ public class McDartOptions {
     private final DirectoryProperty generatedDir;
     private final DirectoryProperty libDir;
     private final DirectoryProperty testDir;
-    private final DirectoryProperty generatedMainDir;
     private final DirectoryProperty generatedTestDir;
 
     /**
@@ -107,7 +106,6 @@ public class McDartOptions {
         this.testDescriptorSetFile = objects.property(Object.class);
         this.libDir = objects.directoryProperty();
         this.testDir = objects.directoryProperty();
-        this.generatedMainDir = objects.directoryProperty();
         this.generatedTestDir = objects.directoryProperty();
         this.generatedDir = objects.directoryProperty();
         initProperties();
@@ -119,7 +117,6 @@ public class McDartOptions {
         Directory projectDir = project.getLayout().getProjectDirectory();
         libDir.convention(projectDir.dir(LIB_DIRECTORY));
         testDir.convention(projectDir.dir(TEST_DIRECTORY));
-        generatedMainDir.convention(libDir);
         generatedTestDir.convention(testDir);
         generatedDir.convention(projectDir.dir(GENERATED_BASE_DIR));
     }
@@ -149,17 +146,6 @@ public class McDartOptions {
      */
     public DirectoryProperty getTestDir() {
         return testDir;
-    }
-
-    /**
-     * The directory which contains the generated production Dart files.
-     *
-     * <p>Must be a subdirectory of {@link #getLibDir() libDir}.
-     *
-     * <p>Defaults to the {@code libDir}.
-     */
-    public DirectoryProperty getGeneratedMainDir() {
-        return generatedMainDir;
     }
 
     /**
