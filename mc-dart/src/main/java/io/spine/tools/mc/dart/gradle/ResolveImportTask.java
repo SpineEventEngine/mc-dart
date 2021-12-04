@@ -28,6 +28,7 @@ package io.spine.tools.mc.dart.gradle;
 
 import com.google.common.flogger.FluentLogger;
 import io.spine.tools.dart.fs.DartFile;
+import io.spine.tools.fs.ExternalModules;
 import io.spine.tools.gradle.task.GradleTask;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -53,41 +54,42 @@ final class ResolveImportTask {
 
     static void createTasksIn(Project project) {
         McDartOptions options = getMcDart(project);
-        createMainResolveImportTask(project, options);
-        createTestResolveImportTask(project, options);
+        createTask(project, options, false);
+        createTask(project, options, true);
     }
 
-    private static void createMainResolveImportTask(Project project, McDartOptions options) {
-        DirectoryProperty rootDir = options.getGeneratedMainDir();
-        doCreateResolveImportsTask(project, options, rootDir, false);
-    }
-
-    private static void createTestResolveImportTask(Project project, McDartOptions options) {
-        DirectoryProperty rootDir = options.getGeneratedTestDir();
-        doCreateResolveImportsTask(project, options, rootDir, true);
-    }
-
-    private static void doCreateResolveImportsTask(Project project,
-                                            McDartOptions extension,
-                                            DirectoryProperty rootDir,
-                                            boolean tests) {
-        Action<Task> action = task -> {
-            FileTree generatedFiles = rootDir.getAsFileTree();
-            generatedFiles.forEach(file -> resolveImports(file, extension));
-        };
+    private static void createTask(Project project, McDartOptions options, boolean tests) {
+        ExternalModules modules = options.modules();
+        Action<Task> action = new ReplaceImportAction(options.getLibDir(), modules);
         GradleTask.newBuilder(tests ? resolveTestImports : resolveImports, action)
                 .insertAfterTask(copyGeneratedDart)
                 .insertBeforeTask(assemble)
                 .applyNowTo(project);
     }
 
-    private static void resolveImports(File sourceFile, McDartOptions options) {
-        log.atFine().log("Resolving imports in the file `%s`.", sourceFile);
-        DartFile file = DartFile.read(sourceFile.toPath());
-        Path libPath = options.getLibDir()
-                                .getAsFile()
-                                .map(File::toPath)
-                                .get();
-        file.resolveImports(libPath, options.modules());
+    private static final class ReplaceImportAction implements Action<Task> {
+
+        private final DirectoryProperty libDir;
+        private final ExternalModules modules;
+
+        private ReplaceImportAction(DirectoryProperty dir, ExternalModules modules) {
+            this.libDir = dir;
+            this.modules = modules;
+        }
+
+        @Override
+        public void execute(Task task) {
+            FileTree generatedFiles = libDir.getAsFileTree();
+            generatedFiles.forEach(this::resolveImports);
+        }
+
+        private void resolveImports(File sourceFile) {
+            log.atFine().log("Resolving imports in the file `%s`.", sourceFile);
+            Path libPath = libDir.getAsFile()
+                                 .map(File::toPath)
+                                 .get();
+            DartFile file = DartFile.read(sourceFile.toPath());
+            file.resolveImports(libPath, modules);
+        }
     }
 }
