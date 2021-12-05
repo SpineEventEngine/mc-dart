@@ -36,22 +36,6 @@ import io.spine.tools.gradle.task.TaskName;
 public enum McDartTaskName implements TaskName {
 
     /**
-     * Creates the {@code types.dart} file which contains type mapping for all the production
-     * Protobuf types defined in this project.
-     *
-     * <p>Works only with the {@code main} scope types.
-     */
-    generateDartTypeRegistry,
-
-    /**
-     * Creates the {@code types.dart} file which contains type mapping for all the test Protobuf
-     * types defined in this project.
-     *
-     * <p>Works only with the {@code test} scope types.
-     */
-    generateDartTestTypeRegistry,
-
-    /**
      * Copies the Dart code generated from Protobuf from its temporary location to
      * the {@code lib} directory.
      *
