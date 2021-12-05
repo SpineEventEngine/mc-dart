@@ -51,6 +51,6 @@ public final class McDartPlugin extends LanguagePlugin implements Logging {
         super.apply(project);
         ProtocConfig.applyTo(project);
         CopyTask.createTasksIn(project);
-        ResolveImportTask.createTasksIn(project);
+        ResolveImportsTask.createTasksIn(project);
     }
 }

@@ -46,11 +46,11 @@ import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveTestImports;
 import static io.spine.tools.mc.dart.gradle.Projects.getMcDart;
 
-final class ResolveImportTask {
+final class ResolveImportsTask {
 
     private static final FluentLogger log = FluentLogger.forEnclosingClass();
 
-    private ResolveImportTask() {
+    private ResolveImportsTask() {
     }
 
     static void createTasksIn(Project project) {
@@ -78,19 +78,19 @@ final class ResolveImportTask {
         Set<File> generatedFiles = libDir.getAsFileTree()
                                          .getFiles();
         ExternalModules modules = options.modules();
-        Action<Task> action = new ResolveImportAction(libPath, generatedFiles, modules);
+        Action<Task> action = new ResolveImportsAction(libPath, generatedFiles, modules);
         return action;
     }
 
-    private static final class ResolveImportAction implements Action<Task> {
+    private static final class ResolveImportsAction implements Action<Task> {
 
         private final Path libPath;
         private final Set<File> generatedFiles;
         private final ExternalModules modules;
 
-        private ResolveImportAction(Path libPath,
-                                    Set<File> generatedFiles,
-                                    ExternalModules modules) {
+        private ResolveImportsAction(Path libPath,
+                                     Set<File> generatedFiles,
+                                     ExternalModules modules) {
             this.libPath = libPath;
             this.generatedFiles = generatedFiles;
             this.modules = modules;
