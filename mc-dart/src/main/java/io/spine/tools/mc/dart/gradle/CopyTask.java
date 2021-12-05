@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import io.spine.tools.gradle.SourceSetName;
 import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Project;
-import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.Directory;
 import org.gradle.api.tasks.Copy;
 
 import java.io.File;
@@ -42,6 +42,7 @@ import static io.spine.tools.gradle.task.ProtobufTaskName.generateTestProto;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.Projects.getMcDart;
+import static io.spine.tools.mc.dart.gradle.StandardTypes.camelToSnake;
 import static org.gradle.api.Task.TASK_TYPE;
 
 final class CopyTask {
@@ -55,26 +56,76 @@ final class CopyTask {
     }
 
     private static void createCopyTask(Project project, SourceSetName ssn) {
-        McDartOptions options = getMcDart(project);
-
-        McDartTaskName taskName;
-        DirectoryProperty targetDir;
-        TaskName runAfter;
-        if (ssn.equals(SourceSetName.main)) {
-            taskName = copyGeneratedDart;
-            targetDir = options.getLibDir();
-            runAfter = generateProto;
-        } else {
-            taskName = copyTestGeneratedDart;
-            targetDir = options.getTestDir();
-            runAfter = generateTestProto;
-        }
+        TaskName taskName = taskName(ssn);
         Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.name());
-        task.from(options.getGeneratedBaseDir().dir(ssn.getValue() + File.separator + dart.name()));
+
+        Directory sourceDir = sourceDir(project, ssn);
+        task.from(sourceDir);
+
+        Directory targetDir = targetDir(project, ssn);
         task.into(targetDir);
+
+        TaskName runAfter = runAfter(ssn);
         task.dependsOn(runAfter.name());
+
         project.getTasks()
                .getByName(assemble.name())
                .dependsOn(taskName.name());
+    }
+
+    private static Directory sourceDir(Project project, SourceSetName ssn) {
+        McDartOptions options = getMcDart(project);
+        Directory sourceDir =
+                options.getGeneratedBaseDir()
+                       .dir(ssn.getValue() + File.separator + dart.name())
+                       .get();
+        return sourceDir;
+    }
+
+    private static TaskName taskName(SourceSetName ssn) {
+        //TODO:2021-12-05:alexander.yevsyukov: Return calculated here.
+        if (ssn.equals(SourceSetName.main)) {
+            return copyGeneratedDart;
+        } else {
+            return copyTestGeneratedDart;
+        }
+    }
+
+    /**
+     * Obtains the target directory for the copy operation.
+     *
+     * <p>If the given source set is {@code main} the {@link McDartOptions#getLibDir()}  lib}
+     * directory will be returned.
+     *
+     * <p>If the source set is {@code test} the {@link  McDartOptions#getTestDir() test}
+     * directory will be returned.
+     *
+     * <p>For a custom source set, the directory named after the {@code snake_case} of
+     * the given source set under the root of the project will be returned. E.g. if the given
+     * source set is {@code integrationTest} the directory would be {@code integration_test}.
+     */
+    private static Directory targetDir(Project project, SourceSetName ssn) {
+        McDartOptions options = getMcDart(project);
+        if (ssn.equals(SourceSetName.main)) {
+            return options.getLibDir().get();
+        }
+        if (ssn.equals(SourceSetName.test)) {
+            return options.getTestDir().get();
+        }
+
+        String ssnSnailCase = camelToSnake(ssn.getValue());
+        Directory customTarget = project.getLayout()
+                               .getProjectDirectory()
+                               .dir(ssnSnailCase);
+        return customTarget;
+    }
+
+    private static TaskName runAfter(SourceSetName ssn) {
+        //TODO:2021-12-05:alexander.yevsyukov: Return calculated here.
+        if (ssn.equals(SourceSetName.main)) {
+            return generateProto;
+        } else {
+            return generateTestProto;
+        }
     }
 }
