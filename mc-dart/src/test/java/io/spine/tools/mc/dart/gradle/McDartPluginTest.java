@@ -33,6 +33,7 @@ import org.gradle.api.Task;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -51,54 +52,52 @@ class McDartPluginTest {
 
     @BeforeEach
     void setUp(@TempDir File dir) {
-        project = ProjectBuilder
-                .builder()
+        project = ProjectBuilder.builder()
                 .withName(McDartPluginTest.class.getName())
                 .withProjectDir(dir)
                 .build();
         project.apply(action -> action.plugin("java"));
-    }
 
-    @Test
-    @DisplayName("create `copyGeneratedDart` task")
-    void createMainTask() {
         McDartPlugin plugin = new McDartPlugin();
         plugin.apply(project);
-
-        Task task = findTask(copyGeneratedDart);
-        assertThat(task.getDependsOn()).isNotEmpty();
-
-        Task assembleTask = findTask(assemble);
-        assertThat(assembleTask.getDependsOn()).contains(task.getName());
     }
 
-    @Test
-    @DisplayName("create `copyTestGeneratedDart` task")
-    void createTestTask() {
-        McDartPlugin plugin = new McDartPlugin();
-        plugin.apply(project);
+    @Nested
+    @DisplayName("create tasks")
+    class TaskCreation {
 
-        Task task = findTask(copyTestGeneratedDart);
-        assertThat(task.getDependsOn()).isNotEmpty();
+        @Test
+        @DisplayName("`copyGeneratedDart`")
+        void createMainTask() {
+            Task task = findTask(copyGeneratedDart);
+            assertThat(task.getDependsOn()).isNotEmpty();
 
-        Task assembleTask = findTask(assemble);
-        assertThat(assembleTask.getDependsOn()).contains(task.getName());
-    }
+            Task assembleTask = findTask(assemble);
+            assertThat(assembleTask.getDependsOn()).contains(task.getName());
+        }
 
-    @Test
-    @DisplayName("create `resolveImports` task")
-    void createResolveTask() {
-        McDartPlugin plugin = new McDartPlugin();
-        plugin.apply(project);
+        @Test
+        @DisplayName("`copyTestGeneratedDart`")
+        void createTestTask() {
+            Task task = findTask(copyTestGeneratedDart);
+            assertThat(task.getDependsOn()).isNotEmpty();
 
-        findTask(resolveImports);
-    }
+            Task assembleTask = findTask(assemble);
+            assertThat(assembleTask.getDependsOn()).contains(task.getName());
+        }
 
-    @CanIgnoreReturnValue
-    private Task findTask(TaskName name) {
-        Task task = project.getTasks()
-                           .findByName(name.name());
-        assertThat(task).isNotNull();
-        return task;
+        @Test
+        @DisplayName("`resolveImports`")
+        void createResolveTask() {
+            findTask(resolveImports);
+        }
+
+        @CanIgnoreReturnValue
+        private Task findTask(TaskName name) {
+            Task task = project.getTasks()
+                               .findByName(name.name());
+            assertThat(task).isNotNull();
+            return task;
+        }
     }
 }
