@@ -27,19 +27,15 @@
 package io.spine.tools.mc.dart.gradle;
 
 import io.spine.tools.fs.ExternalModules;
-import io.spine.tools.gradle.SourceSetName;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static io.spine.tools.gradle.project.Projects.descriptorSetFile;
 
 /**
  * DSL extension for configuring Protobuf-to-Dart compilation.
