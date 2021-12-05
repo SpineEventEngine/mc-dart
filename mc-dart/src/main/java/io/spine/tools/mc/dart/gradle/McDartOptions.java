@@ -52,12 +52,9 @@ public class McDartOptions {
     private static final String TEST_DIRECTORY = "test";
     private static final String GENERATED_BASE_DIR = "generated";
 
-    private final Property<Object> mainDescriptorSetFile;
-    private final Property<Object> testDescriptorSetFile;
-
-    private final DirectoryProperty generatedDir;
     private final DirectoryProperty libDir;
     private final DirectoryProperty testDir;
+    private final DirectoryProperty generatedDir;
     private final DirectoryProperty generatedTestDir;
 
     /**
@@ -102,23 +99,19 @@ public class McDartOptions {
         super();
         this.project = project;
         ObjectFactory objects = project.getObjects();
-        this.mainDescriptorSetFile = objects.property(Object.class);
-        this.testDescriptorSetFile = objects.property(Object.class);
         this.libDir = objects.directoryProperty();
         this.testDir = objects.directoryProperty();
-        this.generatedTestDir = objects.directoryProperty();
         this.generatedDir = objects.directoryProperty();
+        this.generatedTestDir = objects.directoryProperty();
         initProperties();
     }
 
     private void initProperties() {
-        mainDescriptorSetFile.convention(descriptorSetFile(project, SourceSetName.main));
-        testDescriptorSetFile.convention(descriptorSetFile(project, SourceSetName.test));
         Directory projectDir = project.getLayout().getProjectDirectory();
         libDir.convention(projectDir.dir(LIB_DIRECTORY));
         testDir.convention(projectDir.dir(TEST_DIRECTORY));
-        generatedTestDir.convention(testDir);
         generatedDir.convention(projectDir.dir(GENERATED_BASE_DIR));
+        generatedTestDir.convention(testDir);
     }
 
     /**
