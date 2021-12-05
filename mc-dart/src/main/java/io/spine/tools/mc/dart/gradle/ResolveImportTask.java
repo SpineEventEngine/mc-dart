@@ -78,17 +78,17 @@ final class ResolveImportTask {
         Set<File> generatedFiles = libDir.getAsFileTree()
                                          .getFiles();
         ExternalModules modules = options.modules();
-        Action<Task> action = new ReplaceImportAction(libPath, generatedFiles, modules);
+        Action<Task> action = new ResolveImportAction(libPath, generatedFiles, modules);
         return action;
     }
 
-    private static final class ReplaceImportAction implements Action<Task> {
+    private static final class ResolveImportAction implements Action<Task> {
 
         private final Path libPath;
         private final Set<File> generatedFiles;
         private final ExternalModules modules;
 
-        private ReplaceImportAction(Path libPath,
+        private ResolveImportAction(Path libPath,
                                     Set<File> generatedFiles,
                                     ExternalModules modules) {
             this.libPath = libPath;
