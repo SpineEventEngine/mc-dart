@@ -29,6 +29,7 @@ package io.spine.tools.mc.dart.gradle;
 import com.google.common.flogger.FluentLogger;
 import io.spine.tools.dart.fs.DartFile;
 import io.spine.tools.fs.ExternalModules;
+import io.spine.tools.gradle.SourceSetName;
 import io.spine.tools.gradle.task.GradleTask;
 import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Action;
@@ -38,14 +39,19 @@ import org.gradle.api.file.DirectoryProperty;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
+import static io.spine.tools.gradle.project.Projects.getSourceSetNames;
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveTestImports;
 import static io.spine.tools.mc.dart.gradle.Projects.getMcDart;
 
+/**
+ * Static factory for creating {@link McDartTaskName#resolveImports(SourceSetName) resolveImports}
+ * tasks in a project.
+ */
 final class ResolveImportsTask {
 
     private static final FluentLogger log = FluentLogger.forEnclosingClass();
@@ -54,15 +60,14 @@ final class ResolveImportsTask {
     }
 
     static void createTasksIn(Project project) {
-        createTask(project, false);
-        createTask(project, true);
+        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
+        sourceSetNames.forEach(ssn -> createTask(project, ssn));
     }
 
-    private static void createTask(Project project, boolean tests) {
+    private static void createTask(Project project, SourceSetName ssn) {
         Action<Task> action = createAction(project);
-        TaskName taskName = tests ? resolveTestImports : resolveImports;
-        //TODO:2021-12-05:alexander.yevsyukov: Shouldn't it depend on source set?
-        TaskName copyTaskName = copyGeneratedDart;
+        TaskName taskName = resolveImports(ssn);
+        TaskName copyTaskName = copyGeneratedDart(ssn);
         GradleTask.newBuilder(taskName, action)
                 .insertAfterTask(copyTaskName)
                 .insertBeforeTask(assemble)

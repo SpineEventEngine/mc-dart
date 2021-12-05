@@ -34,30 +34,34 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.tasks.Copy;
 
 import java.io.File;
+import java.util.List;
 
 import static io.spine.tools.gradle.ProtocPluginName.dart;
+import static io.spine.tools.gradle.project.Projects.getSourceSetNames;
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.gradle.task.ProtobufTaskName.generateProto;
-import static io.spine.tools.gradle.task.ProtobufTaskName.generateTestProto;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.Projects.getMcDart;
 import static io.spine.tools.mc.dart.gradle.StandardTypes.camelToSnake;
 import static org.gradle.api.Task.TASK_TYPE;
 
+/**
+ * Static factory for creating {@link McDartTaskName#copyGeneratedDart(SourceSetName)
+ * copyGeneratedDart} tasks in a project.
+ */
 final class CopyTask {
 
     private CopyTask() {
     }
 
     static void createTasksIn(Project project) {
-        createCopyTask(project, SourceSetName.main);
-        createCopyTask(project, SourceSetName.test);
+        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
+        sourceSetNames.forEach(ssn -> createTask(project, ssn));
     }
 
-    private static void createCopyTask(Project project, SourceSetName ssn) {
-        TaskName taskName = taskName(ssn);
-        Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.name());
+    private static void createTask(Project project, SourceSetName ssn) {
+        TaskName taskName = copyGeneratedDart(ssn);
+        Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.value());
 
         Directory sourceDir = sourceDir(project, ssn);
         task.from(sourceDir);
@@ -65,12 +69,12 @@ final class CopyTask {
         Directory targetDir = targetDir(project, ssn);
         task.into(targetDir);
 
-        TaskName runAfter = runAfter(ssn);
+        TaskName runAfter = generateProto(ssn);
         task.dependsOn(runAfter.name());
 
         project.getTasks()
                .getByName(assemble.name())
-               .dependsOn(taskName.name());
+               .dependsOn(taskName.value());
     }
 
     private static Directory sourceDir(Project project, SourceSetName ssn) {
@@ -80,15 +84,6 @@ final class CopyTask {
                        .dir(ssn.getValue() + File.separator + dart.name())
                        .get();
         return sourceDir;
-    }
-
-    private static TaskName taskName(SourceSetName ssn) {
-        //TODO:2021-12-05:alexander.yevsyukov: Return calculated here.
-        if (ssn.equals(SourceSetName.main)) {
-            return copyGeneratedDart;
-        } else {
-            return copyTestGeneratedDart;
-        }
     }
 
     /**
@@ -118,14 +113,5 @@ final class CopyTask {
                                .getProjectDirectory()
                                .dir(ssnSnailCase);
         return customTarget;
-    }
-
-    private static TaskName runAfter(SourceSetName ssn) {
-        //TODO:2021-12-05:alexander.yevsyukov: Return calculated here.
-        if (ssn.equals(SourceSetName.main)) {
-            return generateProto;
-        } else {
-            return generateTestProto;
-        }
     }
 }

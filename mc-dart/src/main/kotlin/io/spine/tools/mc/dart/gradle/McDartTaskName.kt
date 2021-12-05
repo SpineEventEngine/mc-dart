@@ -23,43 +23,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package io.spine.tools.mc.dart.gradle
 
-package io.spine.tools.mc.dart.gradle;
-
-import io.spine.annotation.Internal;
-import io.spine.tools.gradle.task.TaskName;
+import io.spine.tools.gradle.SourceSetName
+import io.spine.tools.gradle.task.TaskName
+import io.spine.tools.gradle.task.TaskWithSourceSetName
 
 /**
  * Names of Gradle tasks defined by the Spine Protobuf Dart plugin.
  */
-@Internal
-public enum McDartTaskName implements TaskName {
+public class McDartTaskName(value: String, ssn: SourceSetName) : TaskWithSourceSetName(value, ssn) {
 
-    /**
-     * Copies the Dart code generated from Protobuf from its temporary location to
-     * the {@code lib} directory.
-     *
-     * <p>Works only with the {@code main} scope files.
-     */
-    copyGeneratedDart,
+    public companion object {
 
-    /**
-     * Copies the Dart code generated from Protobuf from its temporary location to
-     * the {@code test} directory.
-     *
-     * <p>Works only with the {@code test} scope files.
-     */
-    copyTestGeneratedDart,
+        /**
+         * Copies the Dart code generated from Protobuf from its temporary location to
+         * the directory corresponding the given source set.
+         */
+        @JvmStatic
+        public fun copyGeneratedDart(ssn: SourceSetName): TaskName =
+            McDartTaskName("copy${ssn.toInfix()}GeneratedDart", ssn)
 
-    /**
-     * Rewrites the Dart source files generated from Protobuf with
-     * the resolved absolute imports.
-     */
-    resolveImports,
-
-    /**
-     * Rewrites the Dart test source files of the generated from Protobuf with
-     * the resolved absolute imports.
-     */
-    resolveTestImports
+        /**
+         * Rewrites the Dart source files generated from Protobuf with
+         * the resolved absolute imports.
+         */
+        @JvmStatic
+        public fun resolveImports(ssn: SourceSetName): TaskName =
+            McDartTaskName("resolve${ssn.toInfix()}Imports", ssn)
+    }
 }
