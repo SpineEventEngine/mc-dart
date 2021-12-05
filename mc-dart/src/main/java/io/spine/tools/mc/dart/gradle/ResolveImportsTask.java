@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static io.spine.tools.gradle.project.Projects.getSourceSetNames;
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
@@ -49,23 +50,35 @@ import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
 import static io.spine.tools.mc.dart.gradle.Projects.getMcDart;
 
 /**
- * Static factory for creating {@link McDartTaskName#resolveImports(SourceSetName) resolveImports}
- * tasks in a project.
+ * Creates {@link McDartTaskName#resolveImports(SourceSetName) resolveImports} tasks in a project.
  */
 final class ResolveImportsTask {
 
     private static final FluentLogger log = FluentLogger.forEnclosingClass();
 
-    private ResolveImportsTask() {
+    private final Project project;
+
+    private ResolveImportsTask(Project project) {
+        this.project = project;
     }
 
+    /**
+     * Creates {@link McDartTaskName#resolveImports(SourceSetName) resolveImports} tasks
+     * for all source sets in the given project.
+     */
     static void createTasksIn(Project project) {
-        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
-        sourceSetNames.forEach(ssn -> createTask(project, ssn));
+        checkNotNull(project);
+        ResolveImportsTask factory = new ResolveImportsTask(project);
+        factory.createTasks();
     }
 
-    private static void createTask(Project project, SourceSetName ssn) {
-        Action<Task> action = createAction(project);
+    private void createTasks() {
+        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
+        sourceSetNames.forEach(this::createTask);
+    }
+
+    private void createTask(SourceSetName ssn) {
+        Action<Task> action = createAction();
         TaskName taskName = resolveImports(ssn);
         TaskName copyTaskName = copyGeneratedDart(ssn);
         GradleTask.newBuilder(taskName, action)
@@ -74,7 +87,7 @@ final class ResolveImportsTask {
                 .applyNowTo(project);
     }
 
-    private static Action<Task> createAction(Project project) {
+    private Action<Task> createAction() {
         McDartOptions options = getMcDart(project);
         DirectoryProperty libDir = options.getLibDir();
         Path libPath = libDir.getAsFile()
@@ -87,6 +100,11 @@ final class ResolveImportsTask {
         return action;
     }
 
+    /**
+     * {@linkplain DartFile#resolveImports(Path, ExternalModules) Replaces} imports in
+     * the given generated files taking into account the path to {@code lib} files and
+     * external modules.
+     */
     private static final class ResolveImportsAction implements Action<Task> {
 
         private final Path libPath;

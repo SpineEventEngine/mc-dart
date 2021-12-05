@@ -36,6 +36,7 @@ import org.gradle.api.tasks.Copy;
 import java.io.File;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static io.spine.tools.gradle.ProtocPluginName.dart;
 import static io.spine.tools.gradle.project.Projects.getSourceSetNames;
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
@@ -46,27 +47,40 @@ import static io.spine.tools.mc.dart.gradle.StandardTypes.camelToSnake;
 import static org.gradle.api.Task.TASK_TYPE;
 
 /**
- * Static factory for creating {@link McDartTaskName#copyGeneratedDart(SourceSetName)
- * copyGeneratedDart} tasks in a project.
+ * Creates {@link McDartTaskName#copyGeneratedDart(SourceSetName) copyGeneratedDart} tasks
+ * in a project.
  */
 final class CopyTask {
 
-    private CopyTask() {
+    private final Project project;
+
+    private CopyTask(Project project) {
+        this.project = project;
     }
 
+    /**
+     * Creates {@link McDartTaskName#copyGeneratedDart(SourceSetName) copyGeneratedDart} in
+     * the given project for all source sets.
+     */
     static void createTasksIn(Project project) {
-        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
-        sourceSetNames.forEach(ssn -> createTask(project, ssn));
+        checkNotNull(project);
+        CopyTask factory = new CopyTask(project);
+        factory.createTasks();
     }
 
-    private static void createTask(Project project, SourceSetName ssn) {
+    private void createTasks() {
+        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
+        sourceSetNames.forEach(this::createTask);
+    }
+
+    private void createTask(SourceSetName ssn) {
         TaskName taskName = copyGeneratedDart(ssn);
         Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.value());
 
-        Directory sourceDir = sourceDir(project, ssn);
+        Directory sourceDir = sourceDir(ssn);
         task.from(sourceDir);
 
-        Directory targetDir = targetDir(project, ssn);
+        Directory targetDir = targetDir(ssn);
         task.into(targetDir);
 
         TaskName runAfter = generateProto(ssn);
@@ -77,7 +91,7 @@ final class CopyTask {
                .dependsOn(taskName.value());
     }
 
-    private static Directory sourceDir(Project project, SourceSetName ssn) {
+    private Directory sourceDir(SourceSetName ssn) {
         McDartOptions options = getMcDart(project);
         Directory sourceDir =
                 options.getGeneratedBaseDir()
@@ -99,7 +113,7 @@ final class CopyTask {
      * the given source set under the root of the project will be returned. E.g. if the given
      * source set is {@code integrationTest} the directory would be {@code integration_test}.
      */
-    private static Directory targetDir(Project project, SourceSetName ssn) {
+    private Directory targetDir(SourceSetName ssn) {
         McDartOptions options = getMcDart(project);
         if (ssn.equals(SourceSetName.main)) {
             return options.getLibDir().get();
