@@ -33,20 +33,18 @@ package io.spine.tools.mc.dart.gradle
  */
 public fun CharSequence.camelToSnake(): String {
     val length = length
-    val result = StringBuilder(length + length / 4)
-
-    // Append first character (in lower case) to result string.
-    result.append(this[0].lowercaseChar())
-
-    // Traverse the string from ist index to last index
-    for (i in 1 until length) {
-        val ch = this[i]
-        if (ch.isUpperCase()) {
-            result.append('_')
-            result.append(ch.lowercaseChar())
-        } else {
-            result.append(ch)
+    val averageEnglishWordLength = 5
+    return buildString(length + length / (averageEnglishWordLength - 1)) {
+        val sequence = this@camelToSnake
+        append(sequence[0].lowercaseChar())
+        for (i in 1 until length) {
+            val ch = sequence[i]
+            if (ch.isUpperCase()) {
+                append('_')
+                append(ch.lowercaseChar())
+            } else {
+                append(ch)
+            }
         }
     }
-    return result.toString()
 }
