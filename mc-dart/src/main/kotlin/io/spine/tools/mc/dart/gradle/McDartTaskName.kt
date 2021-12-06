@@ -23,40 +23,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package io.spine.tools.mc.dart.gradle
 
-/*
- * This plugin configured the test output as follows:
- *
- *  - the standard streams of the tests execution are logged;
- *  - exceptions thrown in tests are logged;
- *  - after all the tests are executed, a short test summary is logged; the summary shown the number
- *    of tests and their results.
+import io.spine.tools.gradle.SourceSetName
+import io.spine.tools.gradle.task.TaskName
+import io.spine.tools.gradle.task.TaskWithSourceSetName
+
+/**
+ * Names of Gradle tasks defined by the Spine Protobuf Dart plugin.
  */
+public class McDartTaskName(value: String, ssn: SourceSetName) : TaskWithSourceSetName(value, ssn) {
 
-println("`test-output.gradle` script is deprecated. Please use `Test.configureLogging()` instead.")
+    public companion object {
 
-tasks.withType(Test).each {
-    it.testLogging {
-        showStandardStreams = true
-        showExceptions = true
-        showStackTraces = true
-        showCauses = true
-        exceptionFormat = 'full'
-    }
+        /**
+         * Copies the Dart code generated from Protobuf from its temporary location to
+         * the directory corresponding the given source set.
+         */
+        @JvmStatic
+        public fun copyGeneratedDart(ssn: SourceSetName): TaskName =
+            McDartTaskName("copy${ssn.toInfix()}GeneratedDart", ssn)
 
-    it.afterSuite { final testDescriptor, final result ->
-        // If the descriptor has no parent, then it is the root test suite, i.e. it includes the
-        // info about all the run tests.
-        if (!testDescriptor.parent) {
-            logger.lifecycle(
-                    """
-                    Test summary:
-                    >> ${result.testCount} tests
-                    >> ${result.successfulTestCount} succeeded
-                    >> ${result.failedTestCount} failed
-                    >> ${result.skippedTestCount} skipped
-                    """
-            )
-        }
+        /**
+         * Rewrites the Dart source files generated from Protobuf with
+         * the resolved absolute imports.
+         */
+        @JvmStatic
+        public fun resolveImports(ssn: SourceSetName): TaskName =
+            McDartTaskName("resolve${ssn.toInfix()}Imports", ssn)
     }
 }

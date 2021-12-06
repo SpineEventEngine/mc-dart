@@ -29,6 +29,7 @@ val mcVersion: String by extra
 
 dependencies {
     api(gradleApi())
+    api(gradleKotlinDsl())
     api("io.spine.tools:spine-model-compiler:${mcVersion}")
 
     testImplementation(gradleTestKit())

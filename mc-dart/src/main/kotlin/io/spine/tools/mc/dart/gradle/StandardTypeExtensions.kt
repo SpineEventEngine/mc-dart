@@ -24,39 +24,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * This plugin configured the test output as follows:
- *
- *  - the standard streams of the tests execution are logged;
- *  - exceptions thrown in tests are logged;
- *  - after all the tests are executed, a short test summary is logged; the summary shown the number
- *    of tests and their results.
+@file:JvmName("StandardTypes")
+
+package io.spine.tools.mc.dart.gradle
+
+/**
+ * Obtains this char sequence in `snake_case`.
  */
-
-println("`test-output.gradle` script is deprecated. Please use `Test.configureLogging()` instead.")
-
-tasks.withType(Test).each {
-    it.testLogging {
-        showStandardStreams = true
-        showExceptions = true
-        showStackTraces = true
-        showCauses = true
-        exceptionFormat = 'full'
-    }
-
-    it.afterSuite { final testDescriptor, final result ->
-        // If the descriptor has no parent, then it is the root test suite, i.e. it includes the
-        // info about all the run tests.
-        if (!testDescriptor.parent) {
-            logger.lifecycle(
-                    """
-                    Test summary:
-                    >> ${result.testCount} tests
-                    >> ${result.successfulTestCount} succeeded
-                    >> ${result.failedTestCount} failed
-                    >> ${result.skippedTestCount} skipped
-                    """
-            )
+public fun CharSequence.camelToSnake(): String {
+    val length = length
+    val averageEnglishWordLength = 5
+    return buildString(length + length / (averageEnglishWordLength - 1)) {
+        val sequence = this@camelToSnake
+        append(sequence[0].lowercaseChar())
+        for (i in 1 until length) {
+            val ch = sequence[i]
+            if (ch.isUpperCase()) {
+                append('_')
+                append(ch.lowercaseChar())
+            } else {
+                append(ch)
+            }
         }
     }
 }

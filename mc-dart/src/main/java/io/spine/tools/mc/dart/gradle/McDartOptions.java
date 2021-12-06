@@ -26,54 +26,31 @@
 
 package io.spine.tools.mc.dart.gradle;
 
-import com.google.common.collect.ImmutableMap;
 import io.spine.tools.fs.ExternalModules;
-import io.spine.tools.gradle.SourceScope;
-import io.spine.tools.gradle.TaskName;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Copy;
 
-import java.io.File;
-import java.nio.file.Path;
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.spine.tools.gradle.BaseTaskName.assemble;
-import static io.spine.tools.gradle.Projects.getDefaultMainDescriptors;
-import static io.spine.tools.gradle.Projects.getDefaultTestDescriptors;
-import static io.spine.tools.gradle.ProtobufTaskName.generateProto;
-import static io.spine.tools.gradle.ProtobufTaskName.generateTestProto;
-import static io.spine.tools.gradle.ProtocPluginName.dart;
-import static io.spine.tools.gradle.SourceScope.main;
-import static io.spine.tools.gradle.SourceScope.test;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
-import static org.gradle.api.Task.TASK_TYPE;
-
 /**
  * DSL extension for configuring Protobuf-to-Dart compilation.
  */
-public final class McDartExtension {
+public class McDartOptions {
 
-    private static final String NAME = "protoDart";
+    static final String NAME = "dart";
 
     private static final String LIB_DIRECTORY = "lib";
     private static final String TEST_DIRECTORY = "test";
-    @SuppressWarnings("DuplicateStringLiteralInspection")
     private static final String GENERATED_BASE_DIR = "generated";
 
-    private final Property<Object> mainDescriptorSetFile;
-    private final Property<Object> testDescriptorSetFile;
-
-    private final DirectoryProperty generatedDir;
     private final DirectoryProperty libDir;
     private final DirectoryProperty testDir;
-    private final DirectoryProperty generatedMainDir;
+    private final DirectoryProperty generatedDir;
     private final DirectoryProperty generatedTestDir;
 
     /**
@@ -113,109 +90,24 @@ public final class McDartExtension {
 
     private final Project project;
 
-    McDartExtension(Project project) {
+    @Inject
+    public McDartOptions(Project project) {
         super();
         this.project = project;
         ObjectFactory objects = project.getObjects();
-        this.mainDescriptorSetFile = objects.property(Object.class);
-        this.testDescriptorSetFile = objects.property(Object.class);
         this.libDir = objects.directoryProperty();
         this.testDir = objects.directoryProperty();
-        this.generatedMainDir = objects.directoryProperty();
-        this.generatedTestDir = objects.directoryProperty();
         this.generatedDir = objects.directoryProperty();
+        this.generatedTestDir = objects.directoryProperty();
         initProperties();
     }
 
-    void createMainCopyTaskIn(Project project) {
-        createCopyTask(project, main);
-    }
-
-    void createTestCopyTaskIn(Project project) {
-        createCopyTask(project, test);
-    }
-
-    private void createCopyTask(Project project, SourceScope scope) {
-        McDartTaskName taskName;
-        DirectoryProperty targetDir;
-        TaskName runAfter;
-        if (scope == main) {
-            taskName = copyGeneratedDart;
-            targetDir = getLibDir();
-            runAfter = generateProto;
-        } else {
-            taskName = copyTestGeneratedDart;
-            targetDir = getTestDir();
-            runAfter = generateTestProto;
-        }
-        Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.name());
-        task.from(getGeneratedBaseDir().dir(scope.name() + File.separator + dart.name()));
-        task.into(targetDir);
-        task.dependsOn(runAfter.name());
-        project.getTasks()
-               .getByName(assemble.name())
-               .dependsOn(taskName.name());
-    }
-
     private void initProperties() {
-        mainDescriptorSetFile.convention(getDefaultMainDescriptors(project));
-        testDescriptorSetFile.convention(getDefaultTestDescriptors(project));
         Directory projectDir = project.getLayout().getProjectDirectory();
         libDir.convention(projectDir.dir(LIB_DIRECTORY));
         testDir.convention(projectDir.dir(TEST_DIRECTORY));
-        generatedMainDir.convention(libDir);
-        generatedTestDir.convention(testDir);
         generatedDir.convention(projectDir.dir(GENERATED_BASE_DIR));
-    }
-
-    /**
-     * Finds an extension of this type in the given project.
-     */
-    static McDartExtension findIn(Project project) {
-        McDartExtension result =
-                project.getExtensions()
-                       .getByType(McDartExtension.class);
-        return result;
-    }
-
-    /**
-     * Registers this extension in the given project.
-     */
-    void register() {
-        project.getExtensions()
-               .add(McDartExtension.class, NAME, this);
-    }
-
-    /**
-     * The descriptor set file for production Protobuf types.
-     *
-     * <p>Defaults to {@code $projectDir/build/descriptors/main.desc}.
-     */
-    public Property<Object> getMainDescriptorSetFile() {
-        return mainDescriptorSetFile;
-    }
-
-    /**
-     * Resolves the descriptor set file for production Protobuf types.
-     */
-    File mainDescriptorSetFile() {
-        return file(getMainDescriptorSetFile());
-    }
-
-    /**
-     * The descriptor set file for test Protobuf types.
-     *
-     * <p>Defaults to {@code $projectDir/build/descriptors/test.desc}.
-     */
-    public Property<Object> getTestDescriptorSetFile() {
-        return testDescriptorSetFile;
-    }
-
-    /**
-     * Resolves the descriptor set file for test Protobuf types.
-     */
-    File testDescriptorSetFile() {
-        return file(getTestDescriptorSetFile());
+        generatedTestDir.convention(testDir);
     }
 
     /**
@@ -225,15 +117,6 @@ public final class McDartExtension {
      */
     public DirectoryProperty getGeneratedBaseDir() {
         return generatedDir;
-    }
-
-    /**
-     * Resolves the base directory for code generated by {@code protoc}.
-     */
-    Path generatedDirPath() {
-        return getGeneratedBaseDir().get()
-                                    .getAsFile()
-                                    .toPath();
     }
 
     /**
@@ -255,17 +138,6 @@ public final class McDartExtension {
     }
 
     /**
-     * The directory which contains the generated production Dart files.
-     *
-     * <p>Must be a subdirectory of {@link #getLibDir() libDir}.
-     *
-     * <p>Defaults to the {@code libDir}.
-     */
-    public DirectoryProperty getGeneratedMainDir() {
-        return generatedMainDir;
-    }
-
-    /**
      * The directory which contains the generated test Dart files.
      *
      * <p>Must be a subdirectory of {@link #getTestDir() testDir}.
@@ -279,9 +151,5 @@ public final class McDartExtension {
 
     ExternalModules modules() {
         return new ExternalModules(modules);
-    }
-
-    private File file(Property<Object> property) {
-        return project.file(property.get());
     }
 }

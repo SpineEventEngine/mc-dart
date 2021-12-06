@@ -30,9 +30,9 @@ import com.google.protobuf.gradle.ExecutableLocator;
 import io.spine.tools.dart.fs.ProtocPluginPath;
 import io.spine.tools.gradle.ProtocConfigurationPlugin;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import static io.spine.tools.gradle.ProtocPluginName.dart;
@@ -43,21 +43,13 @@ import static io.spine.tools.gradle.ProtocPluginName.dart;
  */
 final class ProtocConfig extends ProtocConfigurationPlugin {
 
-    @Override
-    protected Path generatedFilesBaseDir(Project project) {
-        return McDartExtension.findIn(project).generatedDirPath();
+    /**
+     * Creates a new instance of the plugin and applies it to the given project.
+     */
+    static void applyTo(Project project) {
+        Plugin<Project> plugin = new ProtocConfig();
+        plugin.apply(project);
     }
-
-    @Override
-    protected File getMainDescriptorSet(Project project) {
-        return McDartExtension.findIn(project).mainDescriptorSetFile();
-    }
-
-    @Override
-    protected File getTestDescriptorSet(Project project) {
-        return McDartExtension.findIn(project).testDescriptorSetFile();
-    }
-
     @Override
     protected void configureProtocPlugins(NamedDomainObjectContainer<ExecutableLocator> plugins,
                                           Project project) {

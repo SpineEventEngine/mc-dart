@@ -27,78 +27,79 @@
 package io.spine.tools.mc.dart.gradle;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import io.spine.tools.gradle.TaskName;
+import io.spine.tools.gradle.task.TaskName;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.testfixtures.ProjectBuilder;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.spine.tools.gradle.BaseTaskName.assemble;
+import static io.spine.tools.gradle.SourceSetName.main;
+import static io.spine.tools.gradle.SourceSetName.test;
+import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
-import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyTestGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;
 
 @DisplayName("`McDartPlugin` should")
 class McDartPluginTest {
 
-    private Project project;
+    private static @MonotonicNonNull Project project = null;
 
-    @BeforeEach
-    void setUp(@TempDir File dir) {
-        project = ProjectBuilder
-                .builder()
+    @BeforeAll
+    static void setUp(@TempDir File dir) {
+        project = ProjectBuilder.builder()
                 .withName(McDartPluginTest.class.getName())
                 .withProjectDir(dir)
                 .build();
         project.apply(action -> action.plugin("java"));
-    }
 
-    @Test
-    @DisplayName("create `copyGeneratedDart` task")
-    void createMainTask() {
         McDartPlugin plugin = new McDartPlugin();
         plugin.apply(project);
-
-        Task task = findTask(copyGeneratedDart);
-        assertThat(task.getDependsOn()).isNotEmpty();
-
-        Task assembleTask = findTask(assemble);
-        assertThat(assembleTask.getDependsOn()).contains(task.getName());
     }
 
-    @Test
-    @DisplayName("create `copyTestGeneratedDart` task")
-    void createTestTask() {
-        McDartPlugin plugin = new McDartPlugin();
-        plugin.apply(project);
+    @Nested
+    @DisplayName("create tasks")
+    class TaskCreation {
 
-        Task task = findTask(copyTestGeneratedDart);
-        assertThat(task.getDependsOn()).isNotEmpty();
+        @Test
+        @DisplayName("`copyGeneratedDart`")
+        void createMainTask() {
+            Task task = findTask(copyGeneratedDart(main));
+            assertThat(task.getDependsOn()).isNotEmpty();
 
-        Task assembleTask = findTask(assemble);
-        assertThat(assembleTask.getDependsOn()).contains(task.getName());
-    }
+            Task assembleTask = findTask(assemble);
+            assertThat(assembleTask.getDependsOn()).contains(task.getName());
+        }
 
-    @Test
-    @DisplayName("create `resolveImports` task")
-    void createResolveTask() {
-        McDartPlugin plugin = new McDartPlugin();
-        plugin.apply(project);
+        @Test
+        @DisplayName("`copyTestGeneratedDart`")
+        void createTestTask() {
+            Task task = findTask(copyGeneratedDart(test));
+            assertThat(task.getDependsOn()).isNotEmpty();
 
-        findTask(resolveImports);
-    }
+            Task assembleTask = findTask(assemble);
+            assertThat(assembleTask.getDependsOn()).contains(task.getName());
+        }
 
-    @CanIgnoreReturnValue
-    private Task findTask(TaskName name) {
-        Task task = project.getTasks()
-                           .findByName(name.name());
-        assertThat(task).isNotNull();
-        return task;
+        @Test
+        @DisplayName("`resolveImports`")
+        void createResolveTask() {
+            findTask(resolveImports(main));
+        }
+
+        @CanIgnoreReturnValue
+        private Task findTask(TaskName name) {
+            Task task = project.getTasks()
+                               .findByName(name.name());
+            assertThat(task).isNotNull();
+            return task;
+        }
     }
 }

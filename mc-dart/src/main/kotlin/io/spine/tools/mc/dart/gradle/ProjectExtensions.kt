@@ -24,39 +24,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * This plugin configured the test output as follows:
- *
- *  - the standard streams of the tests execution are logged;
- *  - exceptions thrown in tests are logged;
- *  - after all the tests are executed, a short test summary is logged; the summary shown the number
- *    of tests and their results.
+@file:JvmName("Projects")
+
+package io.spine.tools.mc.dart.gradle
+
+import io.spine.tools.mc.gradle.modelCompiler
+import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.getByType
+
+/**
+ * Obtains [McDartOptions] in this project.
  */
-
-println("`test-output.gradle` script is deprecated. Please use `Test.configureLogging()` instead.")
-
-tasks.withType(Test).each {
-    it.testLogging {
-        showStandardStreams = true
-        showExceptions = true
-        showStackTraces = true
-        showCauses = true
-        exceptionFormat = 'full'
-    }
-
-    it.afterSuite { final testDescriptor, final result ->
-        // If the descriptor has no parent, then it is the root test suite, i.e. it includes the
-        // info about all the run tests.
-        if (!testDescriptor.parent) {
-            logger.lifecycle(
-                    """
-                    Test summary:
-                    >> ${result.testCount} tests
-                    >> ${result.successfulTestCount} succeeded
-                    >> ${result.failedTestCount} failed
-                    >> ${result.skippedTestCount} skipped
-                    """
-            )
-        }
-    }
-}
+public val Project.mcDart: McDartOptions
+    get() = (modelCompiler as ExtensionAware).extensions.getByType()
