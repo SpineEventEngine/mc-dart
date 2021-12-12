@@ -41,8 +41,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.spine.tools.gradle.SourceSetName.main;
-import static io.spine.tools.gradle.SourceSetName.test;
+import static io.spine.tools.code.SourceSetName.main;
+import static io.spine.tools.code.SourceSetName.test;
 import static io.spine.tools.gradle.task.BaseTaskName.assemble;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.copyGeneratedDart;
 import static io.spine.tools.mc.dart.gradle.McDartTaskName.resolveImports;

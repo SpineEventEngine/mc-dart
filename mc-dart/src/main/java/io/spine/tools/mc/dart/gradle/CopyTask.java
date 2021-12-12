@@ -27,7 +27,7 @@
 package io.spine.tools.mc.dart.gradle;
 
 import com.google.common.collect.ImmutableMap;
-import io.spine.tools.gradle.SourceSetName;
+import io.spine.tools.code.SourceSetName;
 import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
