@@ -24,41 +24,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle.java
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-/**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
- */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.named
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
+ * Locates `test` task in this [TaskContainer].
+ *
+ * Runs the unit tests using JUnit or TestNG.
+ *
+ * Depends on `testClasses`, and all tasks which produce the test runtime classpath.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html#sec:java_tasks">
+ *     Tasks | The Java Plugin</a>
  */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
-
-/**
- * Opts-in to experimental features that we use in our codebase.
- */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
-    }
-}
+val TaskContainer.test: TaskProvider<Test>
+    get() = named<Test>("test")

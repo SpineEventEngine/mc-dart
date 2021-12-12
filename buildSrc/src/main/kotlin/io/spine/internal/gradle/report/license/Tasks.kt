@@ -24,41 +24,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle.report.license
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-/**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
- */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
+ * Locates `generateLicenseReport` in this [TaskContainer].
+ *
+ * The task generates a license report for a specific Gradle project. License report includes
+ * information of all dependencies and their licenses.
  */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
-
-/**
- * Opts-in to experimental features that we use in our codebase.
- */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
-    }
-}
+val TaskContainer.generateLicenseReport: TaskProvider<Task>
+    get() = named("generateLicenseReport")

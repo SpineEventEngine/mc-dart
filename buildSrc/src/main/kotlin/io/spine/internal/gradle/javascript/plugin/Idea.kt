@@ -24,41 +24,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle.javascript.plugin
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.kotlin.dsl.configure
+import org.gradle.plugins.ide.idea.model.IdeaModel
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
+ * Applies and configures `idea` plugin to work with a JavaScript module.
+ *
+ * In particular, this method:
+ *
+ *  1. Specifies directories for production and test sources.
+ *  2. Excludes directories with generated code and build artifacts.
+ *
+ * @see JsPlugins
  */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
+fun JsPlugins.idea() {
+
+    plugins {
+        apply("org.gradle.idea")
     }
-}
 
-/**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
- */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
+    extensions.configure<IdeaModel> {
 
-/**
- * Opts-in to experimental features that we use in our codebase.
- */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
+        module {
+            sourceDirs.add(srcDir)
+            testSourceDirs.add(testSrcDir)
+
+            excludeDirs.addAll(
+                listOf(
+                    nodeModules,
+                    nycOutput,
+                    genProtoMain,
+                    genProtoTest
+                )
+            )
+        }
     }
 }

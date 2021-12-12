@@ -24,41 +24,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle.javascript.plugin
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.withGroovyBuilder
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
+ * Applies `mc-js` plugin and specifies directories for generated code.
+ *
+ * @see JsPlugins
  */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
+fun JsPlugins.mcJs() {
+
+    plugins {
+        apply("io.spine.mc-js")
+    }
+
+    // Temporarily use GroovyInterop.
+    // Currently, it is not possible to obtain `McJsPlugin` on the classpath of `buildSrc`.
+    // See issue: https://github.com/SpineEventEngine/config/issues/298
+
+    project.withGroovyBuilder {
+        "protoJs" {
+            setProperty("generatedMainDir", genProtoMain)
+            setProperty("generatedTestDir", genProtoTest)
+        }
     }
 }
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
+ * Locates `generateJsonParsers` in this [TaskContainer].
+ *
+ * The task generates JSON-parsing code for JavaScript messages compiled from Protobuf.
  */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
-
-/**
- * Opts-in to experimental features that we use in our codebase.
- */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
-    }
-}
+val TaskContainer.generateJsonParsers: TaskProvider<Task>
+    get() = named("generateJsonParsers")

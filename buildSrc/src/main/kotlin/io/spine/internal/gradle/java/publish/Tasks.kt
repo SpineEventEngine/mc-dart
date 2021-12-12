@@ -24,41 +24,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle.java.publish
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-/**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
- */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
+ * Locates `publish` task in this [TaskContainer].
+ *
+ * This task publishes all defined publications to all defined repositories. To achieve that,
+ * the task depends on all `publish`*PubName*`PublicationTo`*RepoName*`Repository` tasks.
+ *
+ * Please note, task execution would not copy publications to the local Maven cache.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven:tasks">
+ *     Tasks | Maven Publish Plugin</a>
  */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
-
-/**
- * Opts-in to experimental features that we use in our codebase.
- */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
-    }
-}
+internal val TaskContainer.publish: TaskProvider<Task>
+    get() = named("publish")

@@ -24,41 +24,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import kotlin.reflect.KClass
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
+ * A name and a type of a Gradle task.
  */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
+internal class TaskName<T : Task>(
+    val value: String,
+    val clazz: KClass<T>,
+) {
+    companion object {
+
+        fun of(name: String) = TaskName(name, Task::class)
+
+        fun <T : Task> of(name: String, clazz: KClass<T>) = TaskName(name, clazz)
     }
 }
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
+ * Locates [the task][TaskName] in this [TaskContainer].
  */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
+internal fun <T : Task> TaskContainer.named(name: TaskName<T>) = named(name.value, name.clazz)
 
 /**
- * Opts-in to experimental features that we use in our codebase.
+ * Registers [the task][TaskName] in this [TaskContainer].
  */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
-    }
-}
+internal fun <T : Task> TaskContainer.register(name: TaskName<T>, init: T.() -> Unit) =
+    register(name.value, name.clazz, init)

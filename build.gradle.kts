@@ -64,12 +64,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     `java-library`
     idea
-    io.spine.internal.dependency.Protobuf.GradlePlugin.apply {
-        id(id).version(version)
-    }
-    io.spine.internal.dependency.ErrorProne.GradlePlugin.apply {
-        id(id)
-    }
+    id(io.spine.internal.dependency.Protobuf.GradlePlugin.id)
+    id(io.spine.internal.dependency.ErrorProne.GradlePlugin.id)
     kotlin("jvm")
 }
 
@@ -152,16 +148,14 @@ subprojects {
     JavadocConfig.applyTo(project)
     CheckStyleConfig.applyTo(project)
 
-    @Suppress("MagicNumber") /* There isn't a reliable way of converting
-                              `JavaVersion.VERSION_1_8` to `8`, or vice versa. */
-    val javaVersion = 8
+    val javaVersion = JavaVersion.VERSION_11.toString()
     kotlin {
         applyJvmToolchain(javaVersion)
         explicitApi()
     }
 
     tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+        kotlinOptions.jvmTarget = javaVersion
         setFreeCompilerArgs()
     }
 

@@ -29,7 +29,7 @@ package io.spine.tools.mc.dart.gradle;
 import com.google.common.flogger.FluentLogger;
 import io.spine.tools.dart.fs.DartFile;
 import io.spine.tools.fs.ExternalModules;
-import io.spine.tools.gradle.SourceSetName;
+import io.spine.tools.code.SourceSetName;
 import io.spine.tools.gradle.task.GradleTask;
 import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Action;

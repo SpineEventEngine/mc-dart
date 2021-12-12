@@ -24,41 +24,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.kotlin
+package io.spine.internal.gradle.javascript
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
+import org.gradle.api.Project
 
 /**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. 11 or 8).
+ * Provides access to the current [JsEnvironment] and shortcuts for running `npm` tool.
  */
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: Int) {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
+open class JsContext(jsEnv: JsEnvironment, internal val project: Project)
+    : JsEnvironment by jsEnv
+{
+    /**
+     * Executes `npm` command in a separate process.
+     *
+     * [JsEnvironment.projectDir] is used as a working directory.
+     */
+    fun npm(vararg args: String) = projectDir.npm(*args)
 
-/**
- * Sets [Java toolchain](https://kotlinlang.org/docs/gradle.html#gradle-java-toolchains-support)
- * to the specified version (e.g. "11" or "8").
- */
-@Suppress("unused")
-fun KotlinJvmProjectExtension.applyJvmToolchain(version: String) =
-    applyJvmToolchain(version.toInt())
+    /**
+     * Executes `npm` command in a separate process.
+     *
+     * This [File] is used as a working directory.
+     */
+    fun File.npm(vararg args: String) = project.exec {
 
-/**
- * Opts-in to experimental features that we use in our codebase.
- */
-fun KotlinCompile.setFreeCompilerArgs() {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xskip-prerelease-check",
-            "-Xjvm-default=all",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        )
+        workingDir(this@npm)
+        commandLine(npmExecutable)
+        args(*args)
+
+        // Using private packages in a CI/CD workflow | npm Docs
+        // https://docs.npmjs.com/using-private-packages-in-a-ci-cd-workflow
+
+        environment["NPM_TOKEN"] = npmAuthToken
     }
 }
