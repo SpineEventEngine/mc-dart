@@ -113,7 +113,6 @@ subprojects {
 
     dependencies {
         errorprone(ErrorProne.core)
-        errorproneJavac(ErrorProne.javacPlugin)
 
         compileOnlyApi(FindBugs.annotations)
         compileOnlyApi(CheckerFramework.annotations)
@@ -153,15 +152,15 @@ subprojects {
     CheckStyleConfig.applyTo(project)
 
     @Suppress("MagicNumber") /* There isn't a reliable way of converting
-                              `JavaVersion.VERSION_1_8` to `8`, or vice versa. */
-    val javaVersion = 8
+                              `JavaVersion.VERSION_11` to `11`, or vice versa. */
+    val javaVersion = 11
     kotlin {
         applyJvmToolchain(javaVersion)
         explicitApi()
     }
 
     tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
         setFreeCompilerArgs()
     }
 
