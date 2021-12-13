@@ -65,7 +65,7 @@ plugins {
     `java-library`
     idea
     io.spine.internal.dependency.Protobuf.GradlePlugin.apply {
-        id(id).version(version)
+        id(id)
     }
     io.spine.internal.dependency.ErrorProne.GradlePlugin.apply {
         id(id)
