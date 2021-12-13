@@ -109,7 +109,6 @@ subprojects {
 
     dependencies {
         errorprone(ErrorProne.core)
-        errorproneJavac(ErrorProne.javacPlugin)
 
         compileOnlyApi(FindBugs.annotations)
         compileOnlyApi(CheckerFramework.annotations)

@@ -60,7 +60,7 @@ class McDartPluginTest {
                 .build();
         project.apply(action -> action.plugin("java"));
 
-        McDartPlugin plugin = new McDartPlugin();
+        var plugin = new McDartPlugin();
         plugin.apply(project);
     }
 
@@ -71,20 +71,20 @@ class McDartPluginTest {
         @Test
         @DisplayName("`copyGeneratedDart`")
         void createMainTask() {
-            Task task = findTask(copyGeneratedDart(main));
+            var task = findTask(copyGeneratedDart(main));
             assertThat(task.getDependsOn()).isNotEmpty();
 
-            Task assembleTask = findTask(assemble);
+            var assembleTask = findTask(assemble);
             assertThat(assembleTask.getDependsOn()).contains(task.getName());
         }
 
         @Test
         @DisplayName("`copyTestGeneratedDart`")
         void createTestTask() {
-            Task task = findTask(copyGeneratedDart(test));
+            var task = findTask(copyGeneratedDart(test));
             assertThat(task.getDependsOn()).isNotEmpty();
 
-            Task assembleTask = findTask(assemble);
+            var assembleTask = findTask(assemble);
             assertThat(assembleTask.getDependsOn()).contains(task.getName());
         }
 
@@ -96,8 +96,8 @@ class McDartPluginTest {
 
         @CanIgnoreReturnValue
         private Task findTask(TaskName name) {
-            Task task = project.getTasks()
-                               .findByName(name.name());
+            var task = project.getTasks()
+                              .findByName(name.name());
             assertThat(task).isNotNull();
             return task;
         }
