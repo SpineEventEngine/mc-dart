@@ -24,7 +24,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-val spineBaseVersion: String by extra
+val baseVersion: String by extra
 val mcVersion: String by extra
 
 dependencies {
@@ -33,5 +33,5 @@ dependencies {
     api("io.spine.tools:spine-model-compiler:${mcVersion}")
 
     testImplementation(gradleTestKit())
-    testImplementation("io.spine.tools:spine-testlib:${spineBaseVersion}")
+    testImplementation("io.spine.tools:spine-testlib:${baseVersion}")
 }

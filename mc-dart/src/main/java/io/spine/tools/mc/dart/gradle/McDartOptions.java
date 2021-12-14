@@ -28,9 +28,7 @@ package io.spine.tools.mc.dart.gradle;
 
 import io.spine.tools.fs.ExternalModules;
 import org.gradle.api.Project;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -94,7 +92,7 @@ public class McDartOptions {
     public McDartOptions(Project project) {
         super();
         this.project = project;
-        ObjectFactory objects = project.getObjects();
+        var objects = project.getObjects();
         this.libDir = objects.directoryProperty();
         this.testDir = objects.directoryProperty();
         this.generatedDir = objects.directoryProperty();
@@ -103,7 +101,7 @@ public class McDartOptions {
     }
 
     private void initProperties() {
-        Directory projectDir = project.getLayout().getProjectDirectory();
+        var projectDir = project.getLayout().getProjectDirectory();
         libDir.convention(projectDir.dir(LIB_DIRECTORY));
         testDir.convention(projectDir.dir(TEST_DIRECTORY));
         generatedDir.convention(projectDir.dir(GENERATED_BASE_DIR));

@@ -33,8 +33,6 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
-import java.nio.file.Path;
-
 import static io.spine.tools.gradle.ProtocPluginName.dart;
 
 /**
@@ -53,7 +51,7 @@ final class ProtocConfig extends ProtocConfigurationPlugin {
     @Override
     protected void configureProtocPlugins(NamedDomainObjectContainer<ExecutableLocator> plugins,
                                           Project project) {
-        Path executable = ProtocPluginPath.locate();
+        var executable = ProtocPluginPath.locate();
         plugins.create(dart.name(), locator -> locator.setPath(executable.toString()));
     }
 }

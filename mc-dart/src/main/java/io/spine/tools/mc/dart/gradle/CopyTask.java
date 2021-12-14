@@ -27,14 +27,13 @@
 package io.spine.tools.mc.dart.gradle;
 
 import com.google.common.collect.ImmutableMap;
-import io.spine.tools.gradle.SourceSetName;
+import io.spine.tools.code.SourceSetName;
 import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.tasks.Copy;
 
 import java.io.File;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.spine.tools.gradle.ProtocPluginName.dart;
@@ -64,26 +63,26 @@ final class CopyTask {
      */
     static void createTasksIn(Project project) {
         checkNotNull(project);
-        CopyTask factory = new CopyTask(project);
+        var factory = new CopyTask(project);
         factory.createTasks();
     }
 
     private void createTasks() {
-        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
+        var sourceSetNames = getSourceSetNames(project);
         sourceSetNames.forEach(this::createTask);
     }
 
     private void createTask(SourceSetName ssn) {
-        TaskName taskName = copyGeneratedDart(ssn);
-        Copy task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.value());
+        var taskName = copyGeneratedDart(ssn);
+        var task = (Copy) project.task(ImmutableMap.of(TASK_TYPE, Copy.class), taskName.value());
 
-        Directory sourceDir = sourceDir(ssn);
+        var sourceDir = sourceDir(ssn);
         task.from(sourceDir);
 
-        Directory targetDir = targetDir(ssn);
+        var targetDir = targetDir(ssn);
         task.into(targetDir);
 
-        TaskName runAfter = generateProto(ssn);
+        var runAfter = generateProto(ssn);
         task.dependsOn(runAfter.name());
 
         project.getTasks()
@@ -92,11 +91,10 @@ final class CopyTask {
     }
 
     private Directory sourceDir(SourceSetName ssn) {
-        McDartOptions options = getMcDart(project);
-        Directory sourceDir =
-                options.getGeneratedBaseDir()
-                       .dir(ssn.getValue() + File.separator + dart.name())
-                       .get();
+        var options = getMcDart(project);
+        var sourceDir = options.getGeneratedBaseDir()
+                               .dir(ssn.getValue() + File.separator + dart.name())
+                               .get();
         return sourceDir;
     }
 
@@ -114,7 +112,7 @@ final class CopyTask {
      * source set is {@code integrationTest} the directory would be {@code integration_test}.
      */
     private Directory targetDir(SourceSetName ssn) {
-        McDartOptions options = getMcDart(project);
+        var options = getMcDart(project);
         if (ssn.equals(SourceSetName.main)) {
             return options.getLibDir().get();
         }
@@ -122,10 +120,10 @@ final class CopyTask {
             return options.getTestDir().get();
         }
 
-        String ssnSnailCase = camelToSnake(ssn.getValue());
-        Directory customTarget = project.getLayout()
-                               .getProjectDirectory()
-                               .dir(ssnSnailCase);
+        var ssnSnailCase = camelToSnake(ssn.getValue());
+        var customTarget = project.getLayout()
+                                  .getProjectDirectory()
+                                  .dir(ssnSnailCase);
         return customTarget;
     }
 }

@@ -29,17 +29,14 @@ package io.spine.tools.mc.dart.gradle;
 import com.google.common.flogger.FluentLogger;
 import io.spine.tools.dart.fs.DartFile;
 import io.spine.tools.fs.ExternalModules;
-import io.spine.tools.gradle.SourceSetName;
+import io.spine.tools.code.SourceSetName;
 import io.spine.tools.gradle.task.GradleTask;
-import io.spine.tools.gradle.task.TaskName;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryProperty;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -68,19 +65,19 @@ final class ResolveImportsTask {
      */
     static void createTasksIn(Project project) {
         checkNotNull(project);
-        ResolveImportsTask factory = new ResolveImportsTask(project);
+        var factory = new ResolveImportsTask(project);
         factory.createTasks();
     }
 
     private void createTasks() {
-        List<SourceSetName> sourceSetNames = getSourceSetNames(project);
+        var sourceSetNames = getSourceSetNames(project);
         sourceSetNames.forEach(this::createTask);
     }
 
     private void createTask(SourceSetName ssn) {
-        Action<Task> action = createAction();
-        TaskName taskName = resolveImports(ssn);
-        TaskName copyTaskName = copyGeneratedDart(ssn);
+        var action = createAction();
+        var taskName = resolveImports(ssn);
+        var copyTaskName = copyGeneratedDart(ssn);
         GradleTask.newBuilder(taskName, action)
                 .insertAfterTask(copyTaskName)
                 .insertBeforeTask(assemble)
@@ -88,14 +85,13 @@ final class ResolveImportsTask {
     }
 
     private Action<Task> createAction() {
-        McDartOptions options = getMcDart(project);
-        DirectoryProperty libDir = options.getLibDir();
-        Path libPath = libDir.getAsFile()
-                             .map(File::toPath)
-                             .get();
-        Set<File> generatedFiles = libDir.getAsFileTree()
-                                         .getFiles();
-        ExternalModules modules = options.modules();
+        var options = getMcDart(project);
+        var libDir = options.getLibDir();
+        var libPath = libDir.getAsFile()
+                            .map(File::toPath)
+                            .get();
+        var generatedFiles = libDir.getAsFileTree().getFiles();
+        var modules = options.modules();
         Action<Task> action = new ResolveImportsAction(libPath, generatedFiles, modules);
         return action;
     }
@@ -126,7 +122,7 @@ final class ResolveImportsTask {
 
         private void resolveImports(File sourceFile) {
             log.atFine().log("Resolving imports in the file `%s`.", sourceFile);
-            DartFile file = DartFile.read(sourceFile.toPath());
+            var file = DartFile.read(sourceFile.toPath());
             file.resolveImports(libPath, modules);
         }
     }
