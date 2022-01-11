@@ -28,4 +28,4 @@ val baseVersion by extra("2.0.0-SNAPSHOT.80")
 val toolBaseVersion by extra("2.0.0-SNAPSHOT.85")
 val mcVersion by extra("2.0.0-SNAPSHOT.87")
 
-val versionToPublish by extra("2.0.0-SNAPSHOT.87")
+val versionToPublish by extra("2.0.0-SNAPSHOT.88")
