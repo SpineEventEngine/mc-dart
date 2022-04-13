@@ -82,13 +82,13 @@ allprojects {
         plugin("jacoco")
         plugin("idea")
         plugin("project-report")
-        apply(from = "$rootDir/version.gradle.kts")
+        from("$rootDir/version.gradle.kts")
     }
 
     group = "io.spine.tools"
     version = extra["versionToPublish"]!!
 
-    with(repositories) {
+    repositories {
         applyGitHubPackages("base", project)
         applyGitHubPackages("tool-base", project)
         applyGitHubPackages("model-compiler", project)
@@ -122,9 +122,11 @@ subprojects {
 
     val baseVersion: String by extra
     val toolBaseVersion: String by extra
-    with(configurations) {
+
+    configurations {
         forceVersions()
         excludeProtobufLite()
+
         all {
             resolutionStrategy {
                 force(
@@ -137,23 +139,23 @@ subprojects {
         }
     }
 
-    tasks.withType<JavaCompile> {
-        configureJavac()
-        configureErrorProne()
+    java {
+        tasks.withType<JavaCompile>().configureEach {
+            configureJavac()
+            configureErrorProne()
+        }
     }
 
-    JavadocConfig.applyTo(project)
-    CheckStyleConfig.applyTo(project)
-
-    val javaVersion = JavaVersion.VERSION_11.toString()
     kotlin {
+        val javaVersion = JavaVersion.VERSION_11.toString()
+
         applyJvmToolchain(javaVersion)
         explicitApi()
-    }
 
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = javaVersion
-        setFreeCompilerArgs()
+        tasks.withType<KotlinCompile>().configureEach {
+            kotlinOptions.jvmTarget = javaVersion
+            setFreeCompilerArgs()
+        }
     }
 
     tasks {
@@ -169,14 +171,13 @@ subprojects {
     val generatedDir by extra("$projectDir/generated")
     val generatedResources = "$generatedDir/main/resources"
 
-    tasks.create<DefaultTask>(name = "prepareProtocConfigVersions") {
+    val prepareProtocConfigVersions by tasks.registering {
         description = "Prepares the versions.properties file."
 
         val propertiesFile = file("$generatedResources/versions.properties")
         outputs.file(propertiesFile)
 
-        val versions = Properties()
-        with(versions) {
+        val versions = Properties().apply {
             setProperty("baseVersion", baseVersion)
             setProperty("protobufVersion", Protobuf.version)
             setProperty("gRPCVersion", Grpc.version)
@@ -194,10 +195,10 @@ subprojects {
                             " the Spine Protoc plugin.")
             }
         }
+    }
 
-        tasks.processResources {
-            dependsOn(this@create)
-        }
+    tasks.processResources {
+        dependsOn(prepareProtocConfigVersions)
     }
 
     sourceSets.main {
@@ -206,7 +207,10 @@ subprojects {
 
     apply<IncrementGuard>()
     apply<VersionWriter>()
+
     LicenseReporter.generateReportIn(project)
+    JavadocConfig.applyTo(project)
+    CheckStyleConfig.applyTo(project)
 
     protobuf {
         generatedFilesBaseDir = generatedDir
