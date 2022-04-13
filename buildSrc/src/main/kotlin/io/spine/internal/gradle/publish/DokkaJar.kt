@@ -24,35 +24,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package io.spine.internal.gradle.publish.proto
-
-import org.gradle.api.Project
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Jar
+package io.spine.internal.gradle.publish
 
 /**
- * Registers an `assembleProto` Gradle task which locates and assembles all `.proto` files
- * in a Gradle project.
+ * A DSL element of [SpinePublishing] extension which configures publishing of [dokkaJar] artifact.
  *
- * The result of assembly is a [Jar] task with an archive output classified as "proto".
+ * This artifact contains Dokka-generated documentation. By default, it is not published.
+ *
+ * Take a look at the [SpinePublishing.dokkaJar] for a usage example.
+ *
+ * @see [registerArtifacts]
  */
-object AssembleProto {
-
-    private const val taskName = "assembleProto"
-
+class DokkaJar {
     /**
-     * Performs the task registration for the passed [project].
+     * Enables publishing `JAR`s with Dokka-generated documentation for all published modules.
      */
-    fun registerIn(project: Project): TaskProvider<Jar> {
-        val task = project.tasks.register(taskName, Jar::class.java) {
-            description =
-                "Assembles a JAR artifact with all Proto definitions from the classpath."
-            from(project.protoFiles())
-            include {
-                it.file.isProtoFileOrDir()
-            }
-            archiveClassifier.set("proto")
-        }
-        return task
-    }
+    var enabled = false
 }
