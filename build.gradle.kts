@@ -37,7 +37,7 @@ import io.spine.internal.dependency.Guava
 import io.spine.internal.dependency.JUnit
 import io.spine.internal.dependency.Protobuf
 import io.spine.internal.dependency.Truth
-import io.spine.internal.gradle.IncrementGuard
+import io.spine.internal.gradle.publish.IncrementGuard
 import io.spine.internal.gradle.VersionWriter
 import io.spine.internal.gradle.applyGitHubPackages
 import io.spine.internal.gradle.applyStandard
@@ -49,7 +49,6 @@ import io.spine.internal.gradle.javac.configureJavac
 import io.spine.internal.gradle.javadoc.JavadocConfig
 import io.spine.internal.gradle.kotlin.applyJvmToolchain
 import io.spine.internal.gradle.kotlin.setFreeCompilerArgs
-import io.spine.internal.gradle.publish.Publish.Companion.publishProtoArtifact
 import io.spine.internal.gradle.publish.PublishingRepos
 import io.spine.internal.gradle.publish.PublishingRepos.gitHub
 import io.spine.internal.gradle.publish.spinePublishing
@@ -70,13 +69,12 @@ plugins {
 }
 
 spinePublishing {
-    projectsToPublish.addAll(subprojects.map { it.path })
-    targetRepositories.addAll(
+    modules = subprojects.map { it.path }.toSet()
+    destinations = setOf(
         PublishingRepos.cloudRepo,
         PublishingRepos.cloudArtifactRegistry,
         gitHub("mc-dart")
     )
-    spinePrefix.set(true)
 }
 
 allprojects {
@@ -208,7 +206,6 @@ subprojects {
 
     apply<IncrementGuard>()
     apply<VersionWriter>()
-    publishProtoArtifact(project)
     LicenseReporter.generateReportIn(project)
 
     protobuf {
