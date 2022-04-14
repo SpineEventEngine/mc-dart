@@ -37,7 +37,7 @@ import io.spine.internal.dependency.Guava
 import io.spine.internal.dependency.JUnit
 import io.spine.internal.dependency.Protobuf
 import io.spine.internal.dependency.Truth
-import io.spine.internal.gradle.IncrementGuard
+import io.spine.internal.gradle.publish.IncrementGuard
 import io.spine.internal.gradle.VersionWriter
 import io.spine.internal.gradle.applyGitHubPackages
 import io.spine.internal.gradle.applyStandard
@@ -49,7 +49,6 @@ import io.spine.internal.gradle.javac.configureJavac
 import io.spine.internal.gradle.javadoc.JavadocConfig
 import io.spine.internal.gradle.kotlin.applyJvmToolchain
 import io.spine.internal.gradle.kotlin.setFreeCompilerArgs
-import io.spine.internal.gradle.publish.Publish.Companion.publishProtoArtifact
 import io.spine.internal.gradle.publish.PublishingRepos
 import io.spine.internal.gradle.publish.PublishingRepos.gitHub
 import io.spine.internal.gradle.publish.spinePublishing
@@ -70,13 +69,12 @@ plugins {
 }
 
 spinePublishing {
-    projectsToPublish.addAll(subprojects.map { it.path })
-    targetRepositories.addAll(
+    modules = subprojects.map { it.path }.toSet()
+    destinations = setOf(
         PublishingRepos.cloudRepo,
         PublishingRepos.cloudArtifactRegistry,
         gitHub("mc-dart")
     )
-    spinePrefix.set(true)
 }
 
 allprojects {
@@ -84,13 +82,13 @@ allprojects {
         plugin("jacoco")
         plugin("idea")
         plugin("project-report")
-        apply(from = "$rootDir/version.gradle.kts")
+        from("$rootDir/version.gradle.kts")
     }
 
     group = "io.spine.tools"
     version = extra["versionToPublish"]!!
 
-    with(repositories) {
+    repositories {
         applyGitHubPackages("base", project)
         applyGitHubPackages("tool-base", project)
         applyGitHubPackages("model-compiler", project)
@@ -124,9 +122,11 @@ subprojects {
 
     val baseVersion: String by extra
     val toolBaseVersion: String by extra
-    with(configurations) {
+
+    configurations {
         forceVersions()
         excludeProtobufLite()
+
         all {
             resolutionStrategy {
                 force(
@@ -139,23 +139,23 @@ subprojects {
         }
     }
 
-    tasks.withType<JavaCompile> {
-        configureJavac()
-        configureErrorProne()
+    java {
+        tasks.withType<JavaCompile>().configureEach {
+            configureJavac()
+            configureErrorProne()
+        }
     }
 
-    JavadocConfig.applyTo(project)
-    CheckStyleConfig.applyTo(project)
-
-    val javaVersion = JavaVersion.VERSION_11.toString()
     kotlin {
+        val javaVersion = JavaVersion.VERSION_11.toString()
+
         applyJvmToolchain(javaVersion)
         explicitApi()
-    }
 
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = javaVersion
-        setFreeCompilerArgs()
+        tasks.withType<KotlinCompile>().configureEach {
+            kotlinOptions.jvmTarget = javaVersion
+            setFreeCompilerArgs()
+        }
     }
 
     tasks {
@@ -171,14 +171,13 @@ subprojects {
     val generatedDir by extra("$projectDir/generated")
     val generatedResources = "$generatedDir/main/resources"
 
-    tasks.create<DefaultTask>(name = "prepareProtocConfigVersions") {
+    val prepareProtocConfigVersions by tasks.registering {
         description = "Prepares the versions.properties file."
 
         val propertiesFile = file("$generatedResources/versions.properties")
         outputs.file(propertiesFile)
 
-        val versions = Properties()
-        with(versions) {
+        val versions = Properties().apply {
             setProperty("baseVersion", baseVersion)
             setProperty("protobufVersion", Protobuf.version)
             setProperty("gRPCVersion", Grpc.version)
@@ -196,10 +195,10 @@ subprojects {
                             " the Spine Protoc plugin.")
             }
         }
+    }
 
-        tasks.processResources {
-            dependsOn(this@create)
-        }
+    tasks.processResources {
+        dependsOn(prepareProtocConfigVersions)
     }
 
     sourceSets.main {
@@ -208,8 +207,10 @@ subprojects {
 
     apply<IncrementGuard>()
     apply<VersionWriter>()
-    publishProtoArtifact(project)
+
     LicenseReporter.generateReportIn(project)
+    JavadocConfig.applyTo(project)
+    CheckStyleConfig.applyTo(project)
 
     protobuf {
         generatedFilesBaseDir = generatedDir

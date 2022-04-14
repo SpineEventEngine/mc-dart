@@ -24,8 +24,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.jetbrains.dokka.gradle.DokkaTask
+
 val baseVersion: String by extra
 val mcVersion: String by extra
+
+plugins {
+    id(io.spine.internal.dependency.Dokka.GradlePlugin.id)
+}
 
 dependencies {
     api(gradleApi())
@@ -34,4 +40,17 @@ dependencies {
 
     testImplementation(gradleTestKit())
     testImplementation("io.spine.tools:spine-testlib:${baseVersion}")
+}
+
+tasks {
+
+    // The module has Kotlin sources.
+    // We should use Dokka to have Javadoc generated upon them as well.
+
+    val dokkaJavadoc by existing(DokkaTask::class)
+    register<Jar>("javadocJar") {
+        from(dokkaJavadoc.flatMap { it.outputDirectory })
+        archiveClassifier.set("javadoc")
+        dependsOn(dokkaJavadoc)
+    }
 }
