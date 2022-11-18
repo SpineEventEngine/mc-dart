@@ -34,7 +34,6 @@ plugins {
     java
     groovy
     `kotlin-dsl`
-    pmd
     val licenseReportVersion = "2.1"
     id("com.github.jk1.dependency-license-report").version(licenseReportVersion)
 }
@@ -51,11 +50,11 @@ repositories {
  * Please keep this value in sync. with `io.spine.internal.dependency.Jackson.version`.
  * It's not a requirement, but would be good in terms of consistency.
  */
-val jacksonVersion = "2.13.0"
+val jacksonVersion = "2.13.4"
 
 val googleAuthToolVersion = "2.1.2"
 val licenseReportVersion = "2.1"
-val grGitVersion = "3.1.1"
+val grGitVersion = "4.1.1"
 
 /**
  * The version of the Kotlin Gradle plugin.
@@ -63,7 +62,7 @@ val grGitVersion = "3.1.1"
  * Please check that this value matches one defined in
  *  [io.spine.internal.dependency.Kotlin.version].
  */
-val kotlinVersion = "1.6.10"
+val kotlinVersion = "1.7.20"
 
 /**
  * The version of Guava used in `buildSrc`.
@@ -71,7 +70,7 @@ val kotlinVersion = "1.6.10"
  * Always use the same version as the one specified in [io.spine.internal.dependency.Guava].
  * Otherwise, when testing Gradle plugins, clashes may occur.
  */
-val guavaVersion = "31.0.1-jre"
+val guavaVersion = "31.1-jre"
 
 /**
  * The version of ErrorProne Gradle plugin.
@@ -81,7 +80,7 @@ val guavaVersion = "31.0.1-jre"
  * @see <a href="https://github.com/tbroyer/gradle-errorprone-plugin/releases">
  *     Error Prone Gradle Plugin Releases</a>
  */
-val errorProneVersion = "2.0.2"
+val errorProneVersion = "3.0.1"
 
 /**
  * The version of Protobuf Gradle Plugin.
@@ -91,7 +90,7 @@ val errorProneVersion = "2.0.2"
  * @see <a href="https://github.com/google/protobuf-gradle-plugin/releases">
  *     Protobuf Gradle Plugins Releases</a>
  */
-val protobufPluginVersion = "0.8.18"
+val protobufPluginVersion = "0.8.19"
 
 /**
  * The version of Dokka Gradle Plugins.
@@ -101,7 +100,39 @@ val protobufPluginVersion = "0.8.18"
  * @see <a href="https://github.com/Kotlin/dokka/releases">
  *     Dokka Releases</a>
  */
-val dokkaVersion = "1.6.10"
+val dokkaVersion = "1.7.20"
+
+/**
+ * The version of Detekt Gradle Plugin.
+ *
+ * @see <a href="https://github.com/detekt/detekt/releases">Detekt Releases</a>
+ */
+val detektVersion = "1.21.0"
+
+configurations.all {
+    resolutionStrategy {
+        force(
+            // Force Kotlin lib versions avoiding using those bundled with Gradle.
+            "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
+            "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion",
+            "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion",
+            "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion",
+            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+        )
+    }
+}
+
+val jvmVersion = JavaLanguageVersion.of(11)
+
+java {
+    toolchain.languageVersion.set(jvmVersion)
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = jvmVersion.toString()
+    }
+}
 
 dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
@@ -113,8 +144,16 @@ dependencies {
     api("com.github.jk1:gradle-license-report:$licenseReportVersion")
     implementation("org.ajoberstar.grgit:grgit-core:${grGitVersion}")
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:${errorProneVersion}")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-    implementation("gradle.plugin.com.google.protobuf:protobuf-gradle-plugin:$protobufPluginVersion")
+
+    // Add explicit dependency to avoid warning on different Kotlin runtime versions.
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+
+    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:$detektVersion")
+    implementation("com.google.protobuf:protobuf-gradle-plugin:$protobufPluginVersion")
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:${dokkaVersion}")
     implementation("org.jetbrains.dokka:dokka-base:${dokkaVersion}")
+
+    // https://github.com/srikanth-lingala/zip4j
+    implementation("net.lingala.zip4j:zip4j:2.10.0")
 }
