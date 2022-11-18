@@ -24,8 +24,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@file:Suppress("RemoveRedundantQualifierName") // To prevent IDEA replacing FQN imports.
-
 import com.google.common.io.Files.createParentDirs
 import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
@@ -39,8 +37,6 @@ import io.spine.internal.dependency.Protobuf
 import io.spine.internal.dependency.Truth
 import io.spine.internal.gradle.publish.IncrementGuard
 import io.spine.internal.gradle.VersionWriter
-import io.spine.internal.gradle.applyGitHubPackages
-import io.spine.internal.gradle.applyStandard
 import io.spine.internal.gradle.checkstyle.CheckStyleConfig
 import io.spine.internal.gradle.excludeProtobufLite
 import io.spine.internal.gradle.forceVersions
@@ -55,6 +51,7 @@ import io.spine.internal.gradle.publish.spinePublishing
 import io.spine.internal.gradle.report.coverage.JacocoConfig
 import io.spine.internal.gradle.report.license.LicenseReporter
 import io.spine.internal.gradle.report.pom.PomGenerator
+import io.spine.internal.gradle.standardToSpineSdk
 import io.spine.internal.gradle.testing.configureLogging
 import io.spine.internal.gradle.testing.registerTestTasks
 import java.util.*
@@ -62,10 +59,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `java-library`
-    idea
-    id(io.spine.internal.dependency.Protobuf.GradlePlugin.id)
-    id(io.spine.internal.dependency.ErrorProne.GradlePlugin.id)
     kotlin("jvm")
+    protobuf
+    errorprone
+    idea
 }
 
 spinePublishing {
@@ -89,10 +86,7 @@ allprojects {
     version = extra["versionToPublish"]!!
 
     repositories {
-        applyGitHubPackages("base", project)
-        applyGitHubPackages("tool-base", project)
-        applyGitHubPackages("model-compiler", project)
-        applyStandard()
+        standardToSpineSdk()
     }
 }
 

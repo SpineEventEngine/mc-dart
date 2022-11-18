@@ -30,7 +30,7 @@ val baseVersion: String by extra
 val mcVersion: String by extra
 
 plugins {
-    id(io.spine.internal.dependency.Dokka.GradlePlugin.id)
+    dokka
 }
 
 dependencies {
