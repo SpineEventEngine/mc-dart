@@ -26,6 +26,7 @@
 
 @file:Suppress("UnusedReceiverParameter", "unused", "TopLevelPropertyNaming", "ObjectPropertyName")
 
+import io.spine.internal.dependency.Dokka
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 
 import io.spine.internal.gradle.standardToSpineSdk
@@ -40,6 +41,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 
 /**
  * Applies [standard][standardToSpineSdk] repositories to this `buildscript`.
@@ -120,6 +122,9 @@ val PluginDependenciesSpec.protobuf: PluginDependencySpec
 
 val PluginDependenciesSpec.`gradle-doctor`: PluginDependencySpec
     get() = id(GradleDoctor.pluginId).version(GradleDoctor.version)
+
+val PluginDependenciesSpec.dokka: PluginDependencySpec
+    get() = id(Dokka.GradlePlugin.id)
 
 /**
  * Configures the dependencies between third-party Gradle tasks
