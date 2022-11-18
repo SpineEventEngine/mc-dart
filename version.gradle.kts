@@ -24,8 +24,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-val baseVersion by extra("2.0.0-SNAPSHOT.88")
-val toolBaseVersion by extra("2.0.0-SNAPSHOT.88")
-val mcVersion by extra("2.0.0-SNAPSHOT.89")
-
+/**
+ * The version of this library.
+ *
+ * For versions of Spine-based dependencies, please see [io.spine.internal.dependency.Spine].
+ */
 val versionToPublish by extra("2.0.0-SNAPSHOT.89")

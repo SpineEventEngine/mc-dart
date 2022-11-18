@@ -34,6 +34,7 @@ import io.spine.internal.dependency.Grpc
 import io.spine.internal.dependency.Guava
 import io.spine.internal.dependency.JUnit
 import io.spine.internal.dependency.Protobuf
+import io.spine.internal.dependency.Spine
 import io.spine.internal.dependency.Truth
 import io.spine.internal.gradle.publish.IncrementGuard
 import io.spine.internal.gradle.VersionWriter
@@ -114,8 +115,7 @@ subprojects {
         testRuntimeOnly(JUnit.runner)
     }
 
-    val baseVersion: String by extra
-    val toolBaseVersion: String by extra
+    val spine = Spine(project)
 
     configurations {
         forceVersions()
@@ -124,10 +124,10 @@ subprojects {
         all {
             resolutionStrategy {
                 force(
-                    "io.spine:spine-base:$baseVersion",
-                    "io.spine.tools:spine-testlib:$baseVersion",
-                    "io.spine.tools:spine-tool-base:$toolBaseVersion",
-                    "io.spine.tools:spine-plugin-base:$toolBaseVersion"
+                    spine.base,
+                    spine.testlib,
+                    spine.toolBase,
+                    spine.pluginBase
                 )
             }
         }
@@ -172,7 +172,7 @@ subprojects {
         outputs.file(propertiesFile)
 
         val versions = Properties().apply {
-            setProperty("baseVersion", baseVersion)
+            setProperty("baseVersion", Spine.DefaultVersion.base)
             setProperty("protobufVersion", Protobuf.version)
             setProperty("gRPCVersion", Grpc.version)
         }
