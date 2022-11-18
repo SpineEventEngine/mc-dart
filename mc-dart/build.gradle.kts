@@ -29,7 +29,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     `detekt-code-analysis`
-    dokka
+    org.jetbrains.dokka
 }
 
 dependencies {

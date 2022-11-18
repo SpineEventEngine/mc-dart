@@ -123,9 +123,6 @@ val PluginDependenciesSpec.protobuf: PluginDependencySpec
 val PluginDependenciesSpec.`gradle-doctor`: PluginDependencySpec
     get() = id(GradleDoctor.pluginId).version(GradleDoctor.version)
 
-val PluginDependenciesSpec.dokka: PluginDependencySpec
-    get() = id(Dokka.GradlePlugin.id)
-
 /**
  * Configures the dependencies between third-party Gradle tasks
  * and those defined via ProtoData and Spine Model Compiler.
