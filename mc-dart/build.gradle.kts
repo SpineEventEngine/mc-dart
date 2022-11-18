@@ -28,6 +28,7 @@ import io.spine.internal.dependency.Spine
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
+    `detekt-code-analysis`
     dokka
 }
 
