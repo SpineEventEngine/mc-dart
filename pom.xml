@@ -134,6 +134,11 @@ all modules and does not describe the project structure per-subproject.
     <version>10.3.4</version>
   </dependency>
   <dependency>
+    <groupId>io.gitlab.arturbosch.detekt</groupId>
+    <artifactId>detekt-cli</artifactId>
+    <version>1.21.0</version>
+  </dependency>
+  <dependency>
     <groupId>net.sourceforge.pmd</groupId>
     <artifactId>pmd-java</artifactId>
     <version>6.50.0</version>
