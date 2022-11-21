@@ -24,22 +24,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import io.spine.internal.dependency.Spine
 import org.jetbrains.dokka.gradle.DokkaTask
 
-val baseVersion: String by extra
-val mcVersion: String by extra
-
 plugins {
-    id(io.spine.internal.dependency.Dokka.GradlePlugin.id)
+    `detekt-code-analysis`
+    org.jetbrains.dokka
 }
 
 dependencies {
+    val spine = Spine(project)
+
     api(gradleApi())
     api(gradleKotlinDsl())
-    api("io.spine.tools:spine-model-compiler:${mcVersion}")
+    api(spine.modelCompiler)
 
     testImplementation(gradleTestKit())
-    testImplementation("io.spine.tools:spine-testlib:${baseVersion}")
+    testImplementation(spine.testlib)
 }
 
 tasks {

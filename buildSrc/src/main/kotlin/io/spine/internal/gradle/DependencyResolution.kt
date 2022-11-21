@@ -33,6 +33,7 @@ import io.spine.internal.dependency.AutoValue
 import io.spine.internal.dependency.CheckerFramework
 import io.spine.internal.dependency.CommonsCli
 import io.spine.internal.dependency.CommonsLogging
+import io.spine.internal.dependency.Dokka
 import io.spine.internal.dependency.ErrorProne
 import io.spine.internal.dependency.FindBugs
 import io.spine.internal.dependency.Flogger
@@ -40,6 +41,7 @@ import io.spine.internal.dependency.Gson
 import io.spine.internal.dependency.Guava
 import io.spine.internal.dependency.J2ObjC
 import io.spine.internal.dependency.JUnit
+import io.spine.internal.dependency.Jackson
 import io.spine.internal.dependency.Kotlin
 import io.spine.internal.dependency.Okio
 import io.spine.internal.dependency.Plexus
@@ -49,7 +51,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolutionStrategy
-import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 /**
  * The function to be used in `buildscript` when a fully-qualified call must be made.
@@ -81,6 +82,7 @@ private fun ResolutionStrategy.forceProductionDependencies() {
         AutoCommon.lib,
         AutoService.annotations,
         CheckerFramework.annotations,
+        Dokka.BasePlugin.lib,
         ErrorProne.annotations,
         ErrorProne.core,
         Guava.lib,
@@ -120,10 +122,18 @@ private fun ResolutionStrategy.forceTransitiveDependencies() {
         Okio.lib,
         CommonsCli.lib,
         CheckerFramework.compatQual,
-        CommonsLogging.lib
+        CommonsLogging.lib,
+        Jackson.databind,
+        Jackson.core,
+        Jackson.dataformatXml,
+        Jackson.dataformatYaml,
+        Jackson.moduleKotlin,
+        Jackson.bom,
+        Jackson.annotations
     )
 }
 
+@Suppress("unused")
 fun NamedDomainObjectContainer<Configuration>.excludeProtobufLite() {
 
     fun excludeProtoLite(configurationName: String) {
@@ -137,31 +147,4 @@ fun NamedDomainObjectContainer<Configuration>.excludeProtobufLite() {
 
     excludeProtoLite("runtimeOnly")
     excludeProtoLite("testRuntimeOnly")
-}
-
-@Suppress("unused")
-object DependencyResolution {
-    @Deprecated(
-        "Please use `configurations.forceVersions()`.",
-        ReplaceWith("configurations.forceVersions()")
-    )
-    fun forceConfiguration(configurations: ConfigurationContainer) {
-        configurations.forceVersions()
-    }
-
-    @Deprecated(
-        "Please use `configurations.excludeProtobufLite()`.",
-        ReplaceWith("configurations.excludeProtobufLite()")
-    )
-    fun excludeProtobufLite(configurations: ConfigurationContainer) {
-        configurations.excludeProtobufLite()
-    }
-
-    @Deprecated(
-        "Please use `applyStandard(repositories)` instead.",
-        replaceWith = ReplaceWith("applyStandard(repositories)")
-    )
-    fun defaultRepositories(repositories: RepositoryHandler) {
-        repositories.applyStandard()
-    }
 }

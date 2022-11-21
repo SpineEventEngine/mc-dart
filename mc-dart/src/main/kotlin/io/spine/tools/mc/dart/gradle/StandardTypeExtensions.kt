@@ -28,13 +28,14 @@
 
 package io.spine.tools.mc.dart.gradle
 
+private const val AVERAGE_ENGLISH_WORD_LENGTH = 5
+
 /**
  * Obtains this char sequence in `snake_case`.
  */
 public fun CharSequence.camelToSnake(): String {
     val length = length
-    val averageEnglishWordLength = 5
-    return buildString(length + length / (averageEnglishWordLength - 1)) {
+    return buildString(length + length / (AVERAGE_ENGLISH_WORD_LENGTH - 1)) {
         val sequence = this@camelToSnake
         append(sequence[0].lowercaseChar())
         for (i in 1 until length) {

@@ -24,8 +24,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@file:Suppress("RemoveRedundantQualifierName") // To prevent IDEA replacing FQN imports.
-
 import com.google.common.io.Files.createParentDirs
 import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
@@ -36,11 +34,10 @@ import io.spine.internal.dependency.Grpc
 import io.spine.internal.dependency.Guava
 import io.spine.internal.dependency.JUnit
 import io.spine.internal.dependency.Protobuf
+import io.spine.internal.dependency.Spine
 import io.spine.internal.dependency.Truth
 import io.spine.internal.gradle.publish.IncrementGuard
 import io.spine.internal.gradle.VersionWriter
-import io.spine.internal.gradle.applyGitHubPackages
-import io.spine.internal.gradle.applyStandard
 import io.spine.internal.gradle.checkstyle.CheckStyleConfig
 import io.spine.internal.gradle.excludeProtobufLite
 import io.spine.internal.gradle.forceVersions
@@ -55,6 +52,7 @@ import io.spine.internal.gradle.publish.spinePublishing
 import io.spine.internal.gradle.report.coverage.JacocoConfig
 import io.spine.internal.gradle.report.license.LicenseReporter
 import io.spine.internal.gradle.report.pom.PomGenerator
+import io.spine.internal.gradle.standardToSpineSdk
 import io.spine.internal.gradle.testing.configureLogging
 import io.spine.internal.gradle.testing.registerTestTasks
 import java.util.*
@@ -62,10 +60,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `java-library`
-    idea
-    id(io.spine.internal.dependency.Protobuf.GradlePlugin.id)
-    id(io.spine.internal.dependency.ErrorProne.GradlePlugin.id)
     kotlin("jvm")
+    protobuf
+    errorprone
+    idea
 }
 
 spinePublishing {
@@ -89,10 +87,7 @@ allprojects {
     version = extra["versionToPublish"]!!
 
     repositories {
-        applyGitHubPackages("base", project)
-        applyGitHubPackages("tool-base", project)
-        applyGitHubPackages("model-compiler", project)
-        applyStandard()
+        standardToSpineSdk()
     }
 }
 
@@ -120,8 +115,7 @@ subprojects {
         testRuntimeOnly(JUnit.runner)
     }
 
-    val baseVersion: String by extra
-    val toolBaseVersion: String by extra
+    val spine = Spine(project)
 
     configurations {
         forceVersions()
@@ -130,10 +124,10 @@ subprojects {
         all {
             resolutionStrategy {
                 force(
-                    "io.spine:spine-base:$baseVersion",
-                    "io.spine.tools:spine-testlib:$baseVersion",
-                    "io.spine.tools:spine-tool-base:$toolBaseVersion",
-                    "io.spine.tools:spine-plugin-base:$toolBaseVersion"
+                    spine.base,
+                    spine.testlib,
+                    spine.toolBase,
+                    spine.pluginBase
                 )
             }
         }
@@ -178,7 +172,7 @@ subprojects {
         outputs.file(propertiesFile)
 
         val versions = Properties().apply {
-            setProperty("baseVersion", baseVersion)
+            setProperty("baseVersion", Spine.DefaultVersion.base)
             setProperty("protobufVersion", Protobuf.version)
             setProperty("gRPCVersion", Grpc.version)
         }
