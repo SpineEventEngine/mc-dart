@@ -63,6 +63,7 @@ plugins {
     kotlin("jvm")
     protobuf
     errorprone
+    `gradle-doctor`
     idea
 }
 
